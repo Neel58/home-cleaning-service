@@ -1,0 +1,70 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}Review Service - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="service-detail">
+        <div class="detail-card">
+            <h1>Share Your Experience</h1>
+            
+            <div style="background: #f5f5f5; padding: 20px; margin-bottom: 30px; border-radius: 8px;">
+                <h3>{{ booking.service.name }}</h3>
+                <p>Completed on {{ booking.created_at|date:"M d, Y" }} by <strong>{{ booking.provider.first_name }}</strong></p>
+                <p><strong>Location:</strong> {{ booking.location }}</p>
+                <p><strong>Price Paid:</strong> ₹{{ booking.service.price }}</p>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if messages %}
+                {% for message in messages %}
+                <div style="background: {% if message.tags %}#f8d7da{% else %}#d4edda{% endif %}; padding: 15px; margin-bottom: 15px; border-radius: 4px; color: {% if message.tags %}#721c24{% else %}#155724{% endif %};">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: bold;">How would you rate this service?</label>
+                    {{ form.rating }}
+                    {% if form.rating.errors %}
+                    <div style="color: #d32f2f; margin-top: 5px;">{{ form.rating.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="{{ form.comment.id_for_label }}" style="display: block; margin-bottom: 10px; font-weight: bold;">Your Review</label>
+                    {{ form.comment }}
+                    <small style="color: #666;">Share any feedback about the service quality, provider professionalism, etc.</small>
+                    {% if form.comment.errors %}
+                    <div style="color: #d32f2f; margin-top: 5px;">{{ form.comment.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button type="submit" class="btn btn-primary btn-lg">Submit Review</button>
+                    <a href="{% url 'customer_dashboard' %}" class="btn btn-secondary btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+    </div>
+</div>
+
+<style>
+.rating-options label {
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+.rating-options input[type="radio"] {
+    margin-right: 5px;
+}
+</style>
+{% endblock %}

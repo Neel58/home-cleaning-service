@@ -1,0 +1,169 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}Provider Verification - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Provider Verification Management</h1>
+    
+    <!-- Pending Providers -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Pending Verification ({{ pending_providers|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_providers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Experience</th>
+                                    <th>Document</th>
+                                    <th>Registered</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for profile in pending_providers %}
+                                <tr>
+                                    <td>{{ profile.user.first_name }}</td>
+                                    <td>{{ profile.user.email }}</td>
+                                    <td>{{ profile.phone }}</td>
+                                    <td>{{ profile.experience_years }} years</td>
+                                    <td>
+                                        {% if profile.verification_document %}
+                                            <a href="{{ profile.verification_document.url }}" target="_blank" class="btn btn-sm btn-info">
+                                                View
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Not provided</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ profile.user.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'provider_verify' profile.id %}" class="btn btn-sm btn-primary">
+                                            Review
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No pending verifications</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Verified Providers -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Verified Providers ({{ verified_providers|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if verified_providers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Rating</th>
+                                    <th>Jobs Completed</th>
+                                    <th>Earnings</th>
+                                    <th>Verified On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for profile in verified_providers %}
+                                <tr>
+                                    <td>{{ profile.user.first_name }}</td>
+                                    <td>{{ profile.user.email }}</td>
+                                    <td><strong>{{ profile.rating }}★</strong></td>
+                                    <td>{{ profile.completed_jobs }}</td>
+                                    <td>₹{{ profile.total_earnings }}</td>
+                                    <td>{{ profile.user.date_joined|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No verified providers</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rejected Providers -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Rejected Providers ({{ rejected_providers|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if rejected_providers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Applied On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for profile in rejected_providers %}
+                                <tr>
+                                    <td>{{ profile.user.first_name }}</td>
+                                    <td>{{ profile.user.email }}</td>
+                                    <td>{{ profile.phone }}</td>
+                                    <td>{{ profile.user.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'provider_verify' profile.id %}" class="btn btn-sm btn-warning">
+                                            Reconsider
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No rejected providers</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Actions -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="d-grid gap-2 d-sm-flex">
+                <a href="{% url 'service_category_list' %}" class="btn btn-secondary btn-lg">
+                    Manage Service Categories
+                </a>
+                <a href="/admin/" class="btn btn-primary btn-lg">
+                    Django Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

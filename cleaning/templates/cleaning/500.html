@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error - CleanHome</title>
+    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
+    <style>
+        .error-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6f42c1 0%, #5a2d8f 100%);
+            padding: 2rem;
+        }
+        
+        .error-content {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .error-code {
+            font-size: 5rem;
+            color: #dc3545;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .error-title {
+            color: #6f42c1;
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .error-message {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-content">
+            <p class="error-code">500</p>
+            <h1 class="error-title">Server Error</h1>
+            <p class="error-message">
+                We're sorry! An unexpected error occurred on the server. 
+                Our team has been notified and is working to fix it.
+            </p>
+            <a href="{% url 'login' %}" class="btn btn-primary">Go to Home</a>
+        </div>
+    </div>
+</body>
+</html>

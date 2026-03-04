@@ -1,0 +1,182 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}My Dashboard - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">My Dashboard</h1>
+            
+            <!-- Notifications -->
+            {% if notifications %}
+            <div class="alert alert-info alert-dismissible fade show">
+                <strong>Recent Notifications ({{ notifications|length }})</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <ul class="mb-0">
+                    {% for notification in notifications %}
+                    <li>{{ notification.message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Profile Summary -->
+            {% if profile %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Profile Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ user.first_name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Phone:</strong> {{ profile.phone }}</p>
+                    <p><strong>City:</strong> {{ profile.city|default:"Not specified" }}</p>
+                    <a href="{% url 'user_profile' %}" class="btn btn-sm btn-secondary">Edit Profile</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Pending Bookings -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h3 class="mb-3">Pending Bookings</h3>
+            {% if pending_bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in pending_bookings %}
+                        <tr>
+                            <td>{{ booking.service.name }}</td>
+                            <td>{{ booking.date_time|date:"M d, Y H:i" }}</td>
+                            <td>{{ booking.location }}</td>
+                            <td><span class="badge bg-warning">{{ booking.get_status_display }}</span></td>
+                            <td>
+                                <a href="{% url 'booking_cancel' booking.id %}" class="btn btn-sm btn-danger">Cancel</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No pending bookings</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Active Bookings -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h3 class="mb-3">Active Bookings</h3>
+            {% if active_bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Provider</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in active_bookings %}
+                        <tr>
+                            <td>{{ booking.service.name }}</td>
+                            <td>
+                                {% if booking.provider %}
+                                    <a href="{% url 'provider_profile' %}?id={{ booking.provider.id }}">{{ booking.provider.first_name }}</a>
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ booking.date_time|date:"M d, Y H:i" }}</td>
+                            <td><span class="badge bg-info">{{ booking.get_status_display }}</span></td>
+                            <td>
+                                <a href="{% url 'booking_cancel' booking.id %}" class="btn btn-sm btn-warning">Cancel</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No active bookings</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Completed Bookings -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h3 class="mb-3">Completed Bookings</h3>
+            {% if completed_bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Provider</th>
+                            <th>Completed On</th>
+                            <th>Rating</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in completed_bookings %}
+                        <tr>
+                            <td>{{ booking.service.name }}</td>
+                            <td>
+                                <a href="{% url 'provider_profile' %}?id={{ booking.provider.id }}">{{ booking.provider.first_name }}</a>
+                            </td>
+                            <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if booking.rating_submitted %}
+                                    <span class="badge bg-success">Reviewed</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Rated</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not booking.rating_submitted %}
+                                    <a href="{% url 'submit_review' booking.id %}" class="btn btn-sm btn-primary">Submit Review</a>
+                                {% else %}
+                                    <span class="text-muted">Reviewed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No completed bookings yet</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="d-grid gap-2 d-sm-flex">
+                <a href="{% url 'services' %}" class="btn btn-primary btn-lg">Browse Services</a>
+                <a href="{% url 'user_profile' %}" class="btn btn-secondary btn-lg">View Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

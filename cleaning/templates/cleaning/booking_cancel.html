@@ -1,0 +1,66 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}Cancel Booking - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Cancel Booking</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Warning!</strong> You are about to cancel your booking for <strong>{{ booking.service.name }}</strong>.
+                        This action cannot be undone.
+                    </div>
+                    
+                    <div class="booking-details mb-4">
+                        <h5>Booking Details:</h5>
+                        <p><strong>Service:</strong> {{ booking.service.name }}</p>
+                        <p><strong>Date & Time:</strong> {{ booking.date_time|date:"M d, Y H:i" }}</p>
+                        <p><strong>Location:</strong> {{ booking.location }}</p>
+                        <p><strong>Price:</strong> ₹{{ booking.service.price }}</p>
+                        {% if booking.provider %}
+                        <p><strong>Provider:</strong> {{ booking.provider.first_name }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            {{ form.reason }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-check">
+                                <input type="checkbox" class="form-check-input" id="confirm-cancel" required>
+                                <span class="form-check-label">
+                                    I understand that this booking will be cancelled permanently
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg" id="cancel-btn" disabled>
+                                Confirm Cancellation
+                            </button>
+                            <a href="{% url 'customer_dashboard' %}" class="btn btn-secondary">
+                                Keep Booking
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('confirm-cancel').addEventListener('change', function() {
+    document.getElementById('cancel-btn').disabled = !this.checked;
+});
+</script>
+{% endblock %}

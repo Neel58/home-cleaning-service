@@ -1,0 +1,100 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}Service Categories - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Service Categories</h1>
+                <a href="{% url 'service_category_create' %}" class="btn btn-primary">
+                    + Add Category
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-12">
+            {% if categories %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Icon</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Base Price</th>
+                            <th>Status</th>
+                            <th>Services</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr>
+                            <td>
+                                {% if category.icon %}
+                                    <img src="{{ category.icon.url }}" alt="{{ category.name }}" style="height: 40px;">
+                                {% else %}
+                                    <span class="text-muted">No icon</span>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ category.name }}</strong></td>
+                            <td>{{ category.description|truncatewords:10 }}</td>
+                            <td>₹{{ category.base_price }}</td>
+                            <td>
+                                {% if category.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ category.services.count }}</td>
+                            <td>
+                                <a href="{% url 'service_category_edit' category.id %}" class="btn btn-sm btn-warning">
+                                    Edit
+                                </a>
+                                <a href="{% url 'service_category_delete' category.id %}" class="btn btn-sm btn-danger">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <p>No service categories found. <a href="{% url 'service_category_create' %}">Create one now</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="d-grid gap-2 d-sm-flex">
+                <a href="{% url 'provider_verification_list' %}" class="btn btn-secondary btn-lg">
+                    Provider Management
+                </a>
+                <a href="/admin/" class="btn btn-primary btn-lg">
+                    Django Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

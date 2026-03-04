@@ -1,0 +1,74 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}Verify Provider - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Provider Verification</h4>
+                </div>
+                <div class="card-body">
+                    <h5>{{ profile.user.first_name }} {{ profile.user.last_name|default:"" }}</h5>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>Personal Information</h6>
+                            <p><strong>Email:</strong> {{ profile.user.email }}</p>
+                            <p><strong>Phone:</strong> {{ profile.phone }}</p>
+                            <p><strong>City:</strong> {{ profile.city|default:"Not specified" }}</p>
+                            <p><strong>Experience:</strong> {{ profile.experience_years }} years</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Account Details</h6>
+                            <p><strong>User Type:</strong> {{ profile.get_user_type_display }}</p>
+                            <p><strong>Current Status:</strong> {{ profile.get_verification_status_display }}</p>
+                            <p><strong>Registered:</strong> {{ profile.user.date_joined|date:"M d, Y H:i" }}</p>
+                            <p><strong>Jobs Completed:</strong> {{ profile.completed_jobs }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if profile.verification_document %}
+                    <div class="mt-4">
+                        <h6>Verification Document</h6>
+                        <a href="{{ profile.verification_document.url }}" target="_blank" class="btn btn-sm btn-info">
+                            View Document
+                        </a>
+                        <p class="text-muted mt-2"><small>File: {{ profile.verification_document.name }}</small></p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <hr>
+                        <h5>Verification Decision</h5>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="form-group mb-3">
+                                {{ form.verification_decision }}
+                            </div>
+                            
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    Submit Decision
+                                </button>
+                                <a href="{% url 'provider_verification_list' %}" class="btn btn-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

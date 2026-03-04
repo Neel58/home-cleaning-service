@@ -1,0 +1,46 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}Delete Category - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirm Deletion</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h5>Are you sure you want to delete this category?</h5>
+                        <p>
+                            <strong>Category:</strong> {{ category.name }}<br>
+                            <strong>Services using this:</strong> {{ category.services.count }}
+                        </p>
+                    </div>
+                    
+                    {% if category.services.count > 0 %}
+                    <div class="alert alert-danger">
+                        <strong>Warning!</strong> This category has {{ category.services.count }} service(s). 
+                        They will be unlinked from this category.
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                Yes, Delete Category
+                            </button>
+                            <a href="{% url 'service_category_list' %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

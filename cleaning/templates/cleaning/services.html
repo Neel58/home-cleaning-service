@@ -20,20 +20,67 @@
     <div class="services-container">
         <h1>Select a Service</h1>
         
+        <!-- Filtering Form -->
+        <div style="background: #f5f5f5; padding: 20px; margin-bottom: 30px; border-radius: 8px;">
+            <h3>Filter Services</h3>
+            <form method="GET" style="display: grid; gap: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <input type="text" name="search" placeholder="Search services..." value="{{ form.search.value|default:'' }}" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    
+                    <select name="category" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">All Categories</option>
+                        {% for category in form.category.field.queryset %}
+                        <option value="{{ category.id }}" {% if form.category.value == category.id %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <input type="number" name="min_price" placeholder="Min Price" value="{{ form.min_price.value|default:'' }}" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    
+                    <input type="number" name="max_price" placeholder="Max Price" value="{{ form.max_price.value|default:'' }}" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    
+                    <select name="sort_by" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Sort By</option>
+                        <option value="price_asc" {% if form.sort_by.value == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if form.sort_by.value == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="rating_desc" {% if form.sort_by.value == 'rating_desc' %}selected{% endif %}>Highest Rated</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn-view" style="padding: 10px 20px;">Filter</button>
+                    <a href="{% url 'services' %}" style="padding: 10px 20px; background: #888; color: white; text-decoration: none; border-radius: 4px; cursor: pointer;">Clear Filters</a>
+                </div>
+            </form>
+        </div>
+        
+        {% if services %}
         <div class="services-grid">
             {% for service in services %}
             <div class="service-card">
                 <div class="service-header">
                     <h2>{{ service.name }}</h2>
+                    {% if service.is_best_value %}
+                    <span style="background: #ff6b6b; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">Best Value</span>
+                    {% endif %}
                 </div>
                 <div class="service-body">
                     <h3>{{ service.name }}</h3>
                     <p>{{ service.description }}</p>
+                    <p><strong>Category:</strong> {{ service.category.name|default:"N/A" }}</p>
+                    <p><strong>Price:</strong> ₹{{ service.price }}</p>
+                    <p><strong>Duration:</strong> {{ service.duration }}</p>
+                    <p><strong>Rating:</strong> ⭐ {{ service.average_rating|default:"Not rated yet" }}</p>
                     <a href="{% url 'service_detail' service.id %}" class="btn-view">View Details</a>
                 </div>
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px;">
+            <h3>No services found</h3>
+            <p>Try adjusting your filters</p>
+            <a href="{% url 'services' %}" class="btn-view">Clear Filters</a>
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>

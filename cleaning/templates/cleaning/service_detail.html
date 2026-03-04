@@ -25,20 +25,37 @@
             
             <h1>{{ service.name }}</h1>
             
-            <p class="price">Price: ₹{{ service.price }} (Per Seat)</p>
+            <p class="price">Price: ₹{{ service.price }}</p>
             <p>Duration: {{ service.duration }}</p>
+            {% if service.category %}
+            <p><strong>Category:</strong> {{ service.category.name }}</p>
+            {% endif %}
+            <p><strong>Rating:</strong> ⭐ {{ service.average_rating|default:"Not rated yet" }}</p>
             
             <h3>Description</h3>
             <p>{{ service.description }}</p>
             
-            <h3>Select Date & Time</h3>
+            <h3>Book This Service</h3>
             <form method="POST">
                 {% csrf_token %}
-                <input type="datetime-local" name="date_time" required>
+                {{ form.as_p }}
                 
-                <button type="submit" class="btn-confirm">Confirm & Pay</button>
+                <button type="submit" class="btn-confirm">Create Booking</button>
             </form>
         </div>
+        
+        {% if reviews %}
+        <div class="detail-card" style="margin-top: 30px;">
+            <h3>Recent Reviews ({{ reviews|length }})</h3>
+            {% for review in reviews %}
+            <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                <p><strong>{{ review.booking.customer.first_name }}</strong> - ⭐ {{ review.rating }}/5</p>
+                <p>{{ review.comment|truncatewords:50 }}</p>
+                <p style="font-size: 0.9em; color: #666;">{{ review.created_at|date:"M d, Y" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>

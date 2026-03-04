@@ -19,21 +19,45 @@
     
     <div class="provider-profile">
         <div class="provider-card">
-            <div class="provider-avatar">SP</div>
+            <div class="provider-avatar">{{ provider.first_name|slice:":1" }}</div>
             
-            <h2>Cleaner Name</h2>
-            <p>ID: #SP-2025 | Rating: <span class="rating">⭐ {{ profile.rating }}</span></p>
+            <h2>{{ provider.first_name }}</h2>
+            <p>Email: {{ provider.email }}</p>
+            <p>Rating: <span class="rating">⭐ {{ profile.rating|default:"Not rated yet" }}</span></p>
             
             <div class="provider-details">
-                <p><strong>📞 Phone:</strong> +{{ profile.phone }}</p>
-                <p><strong>📍 City:</strong> {{ profile.city }}</p>
+                <p><strong>📞 Phone:</strong> {{ profile.phone }}</p>
+                <p><strong>📍 City:</strong> {{ profile.city|default:"Not specified" }}</p>
                 <p><strong>💼 Experience:</strong> {{ profile.experience_years }} Years</p>
-                <p><strong>✅ Completed Jobs:</strong> {{ profile.completed_jobs }}</p>
+                <p><strong>✅ Completed Jobs:</strong> {{ completed_jobs }}</p>
                 <p><strong>💰 Total Earnings:</strong> ₹{{ profile.total_earnings }}</p>
+                <p><strong>Status:</strong> 
+                    {% if profile.is_verified_by_admin %}
+                    <span style="color: green; font-weight: bold;">✓ Verified</span>
+                    {% else %}
+                    <span style="color: orange; font-weight: bold;">⏳ Pending</span>
+                    {% endif %}
+                </p>
             </div>
-            
-            <button class="btn-edit">Edit Profile</button>
         </div>
+        
+        {% if reviews %}
+        <div class="provider-card" style="margin-top: 30px;">
+            <h3>Customer Reviews ({{ reviews|length }})</h3>
+            {% for review in reviews %}
+            <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                <p><strong>{{ review.booking.customer.first_name }}</strong></p>
+                <p style="font-weight: bold; color: #ff9800;">⭐ {{ review.rating }}/5</p>
+                <p>{{ review.comment }}</p>
+                <p style="font-size: 0.9em; color: #999;">{{ review.created_at|date:"M d, Y" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="provider-card" style="margin-top: 30px;">
+            <p style="text-align: center; color: #999;">No reviews yet</p>
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>

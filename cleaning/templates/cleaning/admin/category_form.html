@@ -1,0 +1,88 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="alert alert-danger mt-2">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="alert alert-danger mt-2">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.base_price.id_for_label }}" class="form-label">{{ form.base_price.label }}</label>
+                            {{ form.base_price }}
+                            {% if form.base_price.errors %}
+                            <div class="alert alert-danger mt-2">{{ form.base_price.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.icon.id_for_label }}" class="form-label">{{ form.icon.label }}</label>
+                            {{ form.icon }}
+                            {% if form.category and form.category.icon %}
+                            <div class="mt-2">
+                                <p>Current icon:</p>
+                                <img src="{{ form.category.icon.url }}" alt="Icon" style="height: 60px;">
+                            </div>
+                            {% endif %}
+                            {% if form.icon.errors %}
+                            <div class="alert alert-danger mt-2">{{ form.icon.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label class="form-check">
+                                {{ form.is_active }}
+                                <span class="form-check-label">
+                                    {{ form.is_active.label }}
+                                </span>
+                            </label>
+                            {% if form.is_active.errors %}
+                            <div class="alert alert-danger mt-2">{{ form.is_active.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                Save Category
+                            </button>
+                            <a href="{% url 'service_category_list' %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
