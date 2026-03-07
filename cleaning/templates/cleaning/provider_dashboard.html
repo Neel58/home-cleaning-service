@@ -1,67 +1,246 @@
+{% extends 'cleaning/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Provider Dashboard - CleanHome</title>
-    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
-</head>
-<body>
-    <div class="provider-navbar">
-        <a href="{% url 'provider_dashboard' %}" class="logo">Partner App</a>
-        <nav>
-            <a href="{% url 'provider_dashboard' %}">Requests</a>
-            <a href="{% url 'provider_profile' %}">Profile</a>
-            <a href="{% url 'logout' %}" class="logout">Logout</a>
-        </nav>
+
+{% block title %}Provider Dashboard - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="alert alert-success">
+                <h4>Welcome back, {{ user.first_name|default:user.username }}! 👋</h4>
+                <p class="mb-0">You're logged in as a <strong>Service Provider</strong></p>
+            </div>
+        </div>
     </div>
-    
-    <div class="dashboard-container">
-        <div class="requests-section">
-            <h2>New Job Requests</h2>
-            
-            {% if new_requests %}
-                {% for request in new_requests %}
-                <div class="request-card">
-                    <h3>Customer: {{ request.customer.first_name }} {{ request.customer.last_name }} <span class="new-badge">New</span></h3>
-                    <p><strong>Service:</strong> {{ request.service.name }}</p>
-                    <p><strong>Location:</strong> {{ request.location }}</p>
-                    
-                    <form method="POST" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="booking_id" value="{{ request.id }}">
-                        <div class="request-actions">
-                            <button type="submit" name="action" value="accept" class="btn-accept">Accept</button>
-                            <button type="submit" name="action" value="reject" class="btn-reject">Reject</button>
+
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <h5 class="mb-3">Your Performance Dashboard</h5>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">Active Jobs</h6>
+                            <h3 class="card-title text-primary">{{ active_job_count }}</h3>
                         </div>
-                    </form>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p>No new requests at the moment.</p>
-            {% endif %}
-        </div>
-        
-        <div class="jobs-section">
-            <h2>My Active Jobs</h2>
-            
-            {% if active_jobs %}
-                {% for job in active_jobs %}
-                <div class="job-card">
-                    <div class="job-icon">Sofa</div>
-                    <div class="job-info">
-                        <h3>Customer: {{ job.customer.first_name }} {{ job.customer.last_name }}</h3>
-                        <p>Service: {{ job.service.name }}</p>
-                        <p>Status: <strong>{{ job.status|title }}</strong></p>
                     </div>
-                    <a href="{% url 'provider_update' job.id %}" class="btn-update">Update Status</a>
                 </div>
-                {% endfor %}
-            {% else %}
-                <p>No active jobs at the moment.</p>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">Total Earnings</h6>
+                            <h3 class="card-title text-success">${{ total_earnings|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">Average Rating</h6>
+                            <h3 class="card-title text-warning">{{ avg_rating }} ⭐</h3>
+                            <small class="text-muted">({{ review_count }} reviews)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center bg-light">
+                        <div class="card-body">
+                            <h6 class="text-muted">Completed Jobs</h6>
+                            <h3 class="card-title text-info">{{ total_completed }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Notifications -->
+        {% if notifications %}
+        <div class="col-lg-4 mb-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning bg-opacity-10">
+                    <h6 class="mb-0">Recent Notifications</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications|slice:":5" %}
+                        <div class="list-group-item">
+                            <small class="text-muted">{{ notification.created_at|date:"M d, Y H:i" }}</small>
+                            <p class="mb-0 small">{{ notification.message }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Main Content -->
+        <div class="col-lg-{% if notifications %}8{% else %}12{% endif %}">
+            <!-- New Job Requests Section -->
+            <div class="mb-4">
+                <h5 class="mb-3">
+                    New Job Requests
+                    {% if new_request_count > 0 %}
+                        <span class="badge bg-danger">{{ new_request_count }}</span>
+                    {% endif %}
+                </h5>
+
+                {% if new_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Location</th>
+                                <th>Date & Time</th>
+                                <th>Budget</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in new_requests|slice:":10" %}
+                            <tr class="bg-light">
+                                <td>
+                                    <strong>{{ request.customer.first_name }} {{ request.customer.last_name }}</strong>
+                                </td>
+                                <td>{{ request.service.name }}</td>
+                                <td>{{ request.location|truncatewords:3 }}</td>
+                                <td>{{ request.date_time|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge bg-success">${{ request.service.price }}</span>
+                                </td>
+                                <td>
+                                    <form method="POST" action="{% url 'booking_accept' request.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'booking_reject' request.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <strong>No new job requests.</strong> Check back soon!
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Active Jobs Section -->
+            <div class="mb-4">
+                <h5 class="mb-3">
+                    Active Jobs
+                    {% if active_job_count > 0 %}
+                        <span class="badge bg-primary">{{ active_job_count }}</span>
+                    {% endif %}
+                </h5>
+
+                {% if active_jobs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Scheduled</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in active_jobs %}
+                            <tr>
+                                <td>
+                                    <strong>{{ job.customer.first_name }} {{ job.customer.last_name }}</strong>
+                                </td>
+                                <td>{{ job.service.name }}</td>
+                                <td>
+                                    {% if job.status == 'confirmed' %}
+                                        <span class="badge bg-info">{{ job.status|title }}</span>
+                                    {% elif job.status == 'in_progress' %}
+                                        <span class="badge bg-primary">{{ job.status|title }}</span>
+                                    {% elif job.status == 'work_started' %}
+                                        <span class="badge bg-warning">{{ job.status|title }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ job.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ job.date_time|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'provider_update_job' job.id %}" class="btn btn-sm btn-outline-primary">Update Status</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <strong>No active jobs.</strong> Accept new requests to get started!
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Completed Jobs Section -->
+            {% if completed_jobs %}
+            <div class="mb-4">
+                <h5 class="mb-3">Recently Completed Jobs</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Completed Date</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in completed_jobs|slice:":5" %}
+                            <tr>
+                                <td>{{ job.customer.first_name }} {{ job.customer.last_name }}</td>
+                                <td>{{ job.service.name }}</td>
+                                <td>{{ job.date_time|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if job.review %}
+                                        <span class="text-warning">{{ job.review.rating }} ⭐</span>
+                                        <div class="small text-muted">{{ job.review.comment|truncatewords:10 }}</div>
+                                    {% else %}
+                                        <span class="text-muted">No review yet</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             {% endif %}
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+</style>
+{% endblock %}

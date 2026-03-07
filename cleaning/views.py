@@ -3,13 +3,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Sum, Avg
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.http import HttpResponseForbidden
 
-from .models import Service, UserProfile, Booking, Review, ServiceCategory, Notification
+from .models import Service, UserProfile, Booking, Review, ServiceCategory, Notification, Payment
 from .forms import (
     ReviewForm, BookingForm, JobUpdateForm, BookingCancelForm,
     ServiceCategoryForm, ProviderVerificationForm, UserProfileUpdateForm,
@@ -58,7 +58,8 @@ def signup_view(request):
                 username=email,
                 email=email,
                 password=password,
-                first_name=name
+                first_name=name,
+                is_active=True  # Explicitly set to active on creation
             )
             
             # Create user profile
@@ -86,11 +87,40 @@ def signup_view(request):
 
 def login_view(request):
     """Handle user login for customers, providers, and admins"""
+    # If user is already authenticated, redirect to their appropriate dashboard
+    if request.user.is_authenticated:
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            if profile.user_type == 'customer':
+                return redirect('logged_in_home')
+            elif profile.user_type == 'provider':
+                if profile.is_verified_by_admin:
+                    return redirect('logged_in_home')
+                else:
+                    messages.warning(request, 'Your account is pending admin verification.')
+                    return redirect('logout')
+            elif request.user.is_staff and request.user.is_superuser:
+                return redirect('admin:index')
+        except UserProfile.DoesNotExist:
+            return redirect('logout')
+        return redirect('logged_in_home')
+    
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
         
+        # First, check if user exists in database
+        try:
+            user_obj = User.objects.get(username=email)
+            if not user_obj.is_active:
+                messages.error(request, 'Your account has been disabled. Please contact support.')
+                return render(request, 'cleaning/login.html')
+        except User.DoesNotExist:
+            messages.error(request, 'Invalid email or password')
+            return render(request, 'cleaning/login.html')
+        
+        # Now try to authenticate
         user = authenticate(request, username=email, password=password)
         if user is not None:
             try:
@@ -98,18 +128,18 @@ def login_view(request):
                 
                 if user_type == 'customer' and profile.user_type == 'customer':
                     login(request, user)
-                    return redirect('customer_dashboard')
+                    return redirect('logged_in_home')
                 elif user_type == 'provider' and profile.user_type == 'provider':
                     if profile.is_verified_by_admin:
                         login(request, user)
-                        return redirect('provider_dashboard')
+                        return redirect('logged_in_home')
                     else:
                         messages.warning(request, 'Your account is pending admin verification. You cannot log in yet.')
                         return render(request, 'cleaning/login.html')
                 else:
                     messages.error(request, 'Invalid user type for this account')
             except UserProfile.DoesNotExist:
-                messages.error(request, 'User profile not found')
+                messages.error(request, 'User profile not found. Please contact support.')
         else:
             messages.error(request, 'Invalid email or password')
     
@@ -118,8 +148,9 @@ def login_view(request):
 
 def logout_view(request):
     """Handle user logout"""
+    user_email = request.user.email if request.user.is_authenticated else None
     logout(request)
-    messages.success(request, 'You have been logged out successfully')
+    messages.success(request, f'You have been logged out successfully. See you again soon!')
     return redirect('login')
 
 
@@ -138,6 +169,78 @@ def index(request):
         'total_bookings': total_bookings,
     }
     return render(request, 'cleaning/index.html', context)
+
+
+@login_required
+def logged_in_home(request):
+    """Logged-in user homepage with personalized content"""
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+        user_type = profile.user_type
+    except UserProfile.DoesNotExist:
+        return redirect('logout')
+    
+    if user_type == 'customer':
+        # For customers, get their active and pending bookings
+        active_bookings = get_active_bookings(request.user)
+        pending_bookings = get_pending_bookings(request.user)
+        featured_services = Service.objects.filter(is_best_value=True)[:6]
+        recent_reviews = Review.objects.filter(booking__customer=request.user).order_by('-created_at')[:3]
+        
+        # Get unread notifications
+        notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
+        
+        context = {
+            'user_type': user_type,
+            'profile': profile,
+            'active_bookings': active_bookings,
+            'pending_bookings': pending_bookings,
+            'featured_services': featured_services,
+            'recent_reviews': recent_reviews,
+            'notifications': notifications,
+        }
+    elif user_type == 'provider':
+        # For providers, get their active jobs and earnings
+        active_jobs = Booking.objects.filter(
+            provider=request.user,
+            status__in=['confirmed', 'in_progress', 'work_started']
+        ).order_by('-date_time')
+        
+        completed_jobs = Booking.objects.filter(
+            provider=request.user,
+            status='completed'
+        ).order_by('-date_time')[:5]
+        
+        # Calculate total earnings
+        try:
+            total_earnings = Payment.objects.filter(
+                booking__provider=request.user,
+                status='paid'
+            ).aggregate(total=Sum('amount'))['total'] or 0
+        except:
+            total_earnings = 0
+        
+        # Get average rating
+        reviews = Review.objects.filter(booking__provider=request.user)
+        avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+        
+        # Get unread notifications
+        notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
+        
+        context = {
+            'user_type': user_type,
+            'profile': profile,
+            'active_jobs': active_jobs,
+            'completed_jobs': completed_jobs,
+            'total_earnings': total_earnings,
+            'avg_rating': round(avg_rating, 1),
+            'notifications': notifications,
+        }
+    else:
+        # Admin users
+        return redirect('admin:index')
+    
+    return render(request, 'cleaning/logged_in_home.html', context)
 
 
 @require_customer
@@ -214,23 +317,37 @@ def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     reviews = Review.objects.filter(booking__service=service).order_by('-created_at')[:5]
     
+    # Get user's booking status for this service (if logged in)
+    user_booking = None
+    if request.user.is_authenticated:
+        # Get the most recent booking for this service by this user
+        user_booking = Booking.objects.filter(
+            customer=request.user,
+            service=service
+        ).exclude(status='cancelled').order_by('-created_at').first()
+    
     if request.method == 'POST':
-        form = BookingForm(request.POST)
-        if form.is_valid():
-            booking = form.save(commit=False)
-            booking.customer = request.user
-            booking.service = service
-            booking.status = 'pending'
-            booking.save()
-            
-            messages.success(request, 'Booking created! Waiting for provider response.')
-            create_notification(
-                user=request.user,
-                notification_type='booking_request',
-                message=f'Your booking for {service.name} has been created.',
-                booking=booking
-            )
-            return redirect('customer_dashboard')
+        # Only allow booking if no active booking exists
+        if user_booking and user_booking.status not in ['completed', 'cancelled']:
+            messages.error(request, f'You already have an active booking for this service (Status: {user_booking.status.title()}). Please cancel it first if you want to book again.')
+            form = BookingForm()
+        else:
+            form = BookingForm(request.POST)
+            if form.is_valid():
+                booking = form.save(commit=False)
+                booking.customer = request.user
+                booking.service = service
+                booking.status = 'pending'
+                booking.save()
+                
+                messages.success(request, 'Booking created! Waiting for provider response.')
+                create_notification(
+                    user=request.user,
+                    notification_type='booking_request',
+                    message=f'Your booking for {service.name} has been created.',
+                    booking=booking
+                )
+                return redirect('customer_dashboard')
     else:
         form = BookingForm()
     
@@ -238,6 +355,7 @@ def service_detail(request, service_id):
         'service': service,
         'form': form,
         'reviews': reviews,
+        'user_booking': user_booking,
     }
     return render(request, 'cleaning/service_detail.html', context)
 
@@ -333,22 +451,19 @@ def submit_review(request, booking_id):
     return render(request, 'cleaning/review_form.html', context)
 
 
-@login_required
+@require_customer
 def user_profile(request):
     """User profile view with booking history"""
     try:
         profile = UserProfile.objects.get(user=request.user)
-    except UserProfile.DoesNotExist:
-        profile = None
-    
-    if profile and profile.user_type == 'customer':
         bookings = Booking.objects.filter(customer=request.user).order_by('-created_at')
         context = {
             'bookings': bookings,
             'profile': profile,
         }
         return render(request, 'cleaning/user_profile.html', context)
-    else:
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found. Please contact support.')
         return redirect('index')
 
 
@@ -379,6 +494,26 @@ def provider_dashboard(request):
     except UserProfile.DoesNotExist:
         profile = None
     
+    # Calculate total earnings
+    try:
+        total_earnings = Payment.objects.filter(
+            booking__provider=request.user,
+            status='paid'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+    except:
+        total_earnings = 0
+    
+    # Get average rating
+    reviews = Review.objects.filter(booking__provider=request.user)
+    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    review_count = reviews.count()
+    
+    # Get total completed jobs count
+    total_completed = Booking.objects.filter(
+        provider=request.user,
+        status='completed'
+    ).count()
+    
     # Get unread notifications
     notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')[:5]
     
@@ -387,6 +522,12 @@ def provider_dashboard(request):
         'active_jobs': active_jobs,
         'completed_jobs': completed_jobs,
         'profile': profile,
+        'total_earnings': total_earnings,
+        'avg_rating': round(avg_rating, 1),
+        'review_count': review_count,
+        'total_completed': total_completed,
+        'active_job_count': active_jobs.count(),
+        'new_request_count': new_requests.count(),
         'notifications': notifications,
     }
     return render(request, 'cleaning/provider_dashboard.html', context)
@@ -536,16 +677,24 @@ def provider_verification_list(request):
 def provider_verify(request, profile_id):
     """Admin approves or rejects provider"""
     profile = get_object_or_404(UserProfile, id=profile_id, user_type='provider')
+    user = profile.user
     
     if request.method == 'POST':
         form = ProviderVerificationForm(request.POST, instance=profile)
         if form.is_valid():
-            profile = form.save()
+            decision = form.cleaned_data.get('verification_status')
             
-            # Notify provider
-            notify_provider_verification_update(profile.user, profile.verification_status)
+            if decision == 'rejected':
+                # Hard delete the user and profile
+                user_email = user.email
+                user.delete()  # This cascades to delete UserProfile too
+                messages.success(request, f'Provider {user_email} has been rejected and removed from the system.')
+            else:
+                # Approve the provider
+                profile = form.save()
+                notify_provider_verification_update(user, profile.verification_status)
+                messages.success(request, f'Provider {profile.verification_status}!')
             
-            messages.success(request, f'Provider {profile.verification_status}!')
             return redirect('provider_verification_list')
     else:
         form = ProviderVerificationForm(instance=profile)
@@ -689,3 +838,19 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     """Password reset complete view"""
     template_name = 'cleaning/password_reset_complete.html'
+
+# ======================== ERROR HANDLER VIEWS ========================
+
+def error_404(request, exception=None):
+    """Handle 404 - Page Not Found errors"""
+    return render(request, 'cleaning/404.html', status=404)
+
+
+def error_403(request, exception=None):
+    """Handle 403 - Permission Denied errors"""
+    return render(request, 'cleaning/403.html', status=403)
+
+
+def error_500(request):
+    """Handle 500 - Server Error errors"""
+    return render(request, 'cleaning/500.html', status=500)

@@ -1,0 +1,345 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}Home - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="alert alert-info">
+                <h4>Welcome back, {{ user.first_name|default:user.username }}! 👋</h4>
+                <p class="mb-0">You're logged in as a {% if user_type == 'customer' %}<strong>Customer</strong>{% else %}<strong>Service Provider</strong>{% endif %}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if user_type == 'customer' %}
+        <!-- CUSTOMER HOME VIEW -->
+        <div class="row">
+            <!-- Quick Stats -->
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Your Quick Stats</h5>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Active Bookings</h6>
+                                <h3 class="card-title text-primary">{{ active_bookings|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Pending Requests</h6>
+                                <h3 class="card-title text-warning">{{ pending_bookings|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Notifications</h6>
+                                <h3 class="card-title text-success">{{ notifications|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Recent Reviews</h6>
+                                <h3 class="card-title text-info">{{ recent_reviews|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Cards -->
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'services' %}" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-search fa-2x text-primary mb-2"></i>
+                                <h6 class="card-title">Browse Services</h6>
+                                <p class="card-text text-muted small">Find the cleaning service you need</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'customer_dashboard' %}" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-bar fa-2x text-success mb-2"></i>
+                                <h6 class="card-title">My Dashboard</h6>
+                                <p class="card-text text-muted small">View all your bookings and activity</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'user_profile' %}" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user fa-2x text-info mb-2"></i>
+                                <h6 class="card-title">My Profile</h6>
+                                <p class="card-text text-muted small">Manage your account details</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Bookings -->
+            {% if active_bookings %}
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Your Active Bookings</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Service</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Provider</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in active_bookings|slice:":5" %}
+                            <tr>
+                                <td><strong>{{ booking.service.name }}</strong></td>
+                                <td>{{ booking.date_time|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ booking.status|title }}</span>
+                                </td>
+                                <td>{{ booking.provider.first_name|default:"Unassigned" }}</td>
+                                <td>
+                                    <a href="{% url 'service_detail' booking.service.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Featured Services -->
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Featured Services for You</h5>
+                <div class="row">
+                    {% for service in featured_services %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ service.name }}</h6>
+                                <p class="card-text text-muted small">{{ service.description|truncatewords:15 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-primary fw-bold">${{ service.price }}</span>
+                                    <span class="text-warning">⭐ {{ service.average_rating|default:"0" }}</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-top-0">
+                                <a href="{% url 'service_detail' service.id %}" class="btn btn-primary btn-sm w-100">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    {% elif user_type == 'provider' %}
+        <!-- PROVIDER HOME VIEW -->
+        <div class="row">
+            <!-- Quick Stats -->
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Your Performance Stats</h5>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Active Jobs</h6>
+                                <h3 class="card-title text-primary">{{ active_jobs|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Total Earnings</h6>
+                                <h3 class="card-title text-success">${{ total_earnings|floatformat:2 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Average Rating</h6>
+                                <h3 class="card-title text-warning">{{ avg_rating|default:"0" }} ⭐</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Completed Jobs</h6>
+                                <h3 class="card-title text-info">{{ completed_jobs|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Cards -->
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'provider_dashboard' %}" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-briefcase fa-2x text-primary mb-2"></i>
+                                <h6 class="card-title">Job Dashboard</h6>
+                                <p class="card-text text-muted small">Manage your jobs and requests</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'provider_profile' %}" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user fa-2x text-success mb-2"></i>
+                                <h6 class="card-title">My Profile</h6>
+                                <p class="card-text text-muted small">Update your information and rates</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'services' %}" class="card text-decoration-none h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-th fa-2x text-info mb-2"></i>
+                                <h6 class="card-title">Browse Services</h6>
+                                <p class="card-text text-muted small">See available services to offer</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Jobs -->
+            {% if active_jobs %}
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Your Active Jobs</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Service</th>
+                                <th>Customer</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in active_jobs|slice:":5" %}
+                            <tr>
+                                <td><strong>{{ job.service.name }}</strong></td>
+                                <td>{{ job.customer.first_name|default:"Customer" }}</td>
+                                <td>{{ job.date_time|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ job.status|title }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'provider_update_job' job.id %}" class="btn btn-sm btn-outline-primary">Update</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-lg-12 mb-4">
+                <div class="alert alert-info">
+                    <strong>No active jobs right now.</strong> Check your job dashboard for pending requests!
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recently Completed Jobs -->
+            {% if completed_jobs %}
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Recently Completed Jobs</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Service</th>
+                                <th>Customer</th>
+                                <th>Completed</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in completed_jobs|slice:":3" %}
+                            <tr>
+                                <td>{{ job.service.name }}</td>
+                                <td>{{ job.customer.first_name|default:"Customer" }}</td>
+                                <td>{{ job.date_time|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if job.review %}
+                                        <span class="text-warning">{{ job.review.rating }} ⭐</span>
+                                    {% else %}
+                                        <span class="text-muted">No review yet</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    {% endif %}
+
+    <!-- Notifications Widget -->
+    {% if notifications %}
+    <div class="row mt-4">
+        <div class="col-lg-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning bg-opacity-10">
+                    <h6 class="mb-0">Recent Notifications ({{ notifications|length }})</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications|slice:":5" %}
+                        <div class="list-group-item px-0">
+                            <small class="text-muted">{{ notification.created_at|date:"M d, Y H:i" }}</small>
+                            <p class="mb-0">{{ notification.message }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+</style>
+{% endblock %}

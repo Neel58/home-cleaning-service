@@ -1,51 +1,111 @@
+{% extends 'cleaning/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - CleanHome</title>
-    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
-</head>
-<body>
-    <div class="navbar">
-        <a href="{% url 'index' %}" class="logo">CleanHome</a>
-        <nav>
-            <a href="{% url 'index' %}">Home</a>
-            <a href="{% url 'services' %}">Services</a>
-            <a href="{% url 'user_profile' %}" class="active">My Profile</a>
-            <a href="{% url 'logout' %}" class="logout">Logout</a>
-        </nav>
-    </div>
+
+{% block title %}My Profile - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">My Profile</h1>
     
-    <div class="profile-container">
-        <div class="profile-header">
-            <div class="profile-avatar">
-                <span style="font-size: 48px; color: white;">👤</span>
-            </div>
-            <div class="profile-info">
-                <h2>{{ user.first_name }} {{ user.last_name }}</h2>
-                <p>{{ user.email }} {% if profile %}| +{{ profile.phone }}{% endif %}</p>
-                <button class="btn-edit">Edit Profile</button>
+    <!-- Profile Card -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            <div class="rounded-circle bg-light p-4 d-inline-block">
+                                <span style="font-size: 48px;">👤</span>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                            <p class="text-muted">{{ user.email }}</p>
+                            {% if profile %}<p class="text-muted">📞 +{{ profile.phone }}</p>{% endif %}
+                            <a href="{% url 'profile_update' %}" class="btn btn-primary btn-sm">Edit Profile</a>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if profile %}
+                            <p><strong>Phone:</strong> +{{ profile.phone }}</p>
+                            <p><strong>City:</strong> {{ profile.city|default:"Not specified" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="bookings-section">
-            <h2>My Bookings</h2>
+    </div>
+    
+    <!-- Bookings Section -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h3 class="mb-3">My Bookings</h3>
             
             {% if bookings %}
-                {% for booking in bookings %}
-                <div class="booking-card">
-                    <h3>{{ booking.service.name }} <span class="status-badge status-confirmed">{{ booking.status|title }}</span></h3>
-                    <p>📅 {{ booking.date_time|date:"l, g:i A" }}</p>
-                    <p>📍 {{ booking.location }}</p>
-                    <button class="btn-cancel">Cancel Booking</button>
-                </div>
-                {% endfor %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Provider</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td><strong>{{ booking.service.name }}</strong></td>
+                            <td>{{ booking.date_time|date:"M d, Y H:i" }}</td>
+                            <td>{{ booking.location|truncatewords:3 }}</td>
+                            <td>
+                                {% if booking.status == 'pending' %}
+                                    <span class="badge bg-warning">{{ booking.status|title }}</span>
+                                {% elif booking.status == 'confirmed' %}
+                                    <span class="badge bg-info">{{ booking.status|title }}</span>
+                                {% elif booking.status == 'cancelled' %}
+                                    <span class="badge bg-danger">{{ booking.status|title }}</span>
+                                {% elif booking.status == 'completed' %}
+                                    <span class="badge bg-success">{{ booking.status|title }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ booking.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ booking.provider.first_name|default:"Not assigned" }}</td>
+                            <td>
+                                <a href="{% url 'service_detail' booking.service.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                {% if booking.status not in 'completed,cancelled' %}
+                                <a href="{% url 'booking_cancel' booking.id %}" class="btn btn-sm btn-outline-danger">Cancel</a>
+                                {% endif %}
+                                {% if booking.status == 'completed' and not booking.review %}
+                                <a href="{% url 'submit_review' booking.id %}" class="btn btn-sm btn-outline-success">Review</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-                <p>No bookings yet. <a href="{% url 'services' %}">Book a service now!</a></p>
+            <div class="alert alert-info">
+                <p class="mb-0">No bookings yet. <a href="{% url 'services' %}">Book a service now!</a></p>
+            </div>
             {% endif %}
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

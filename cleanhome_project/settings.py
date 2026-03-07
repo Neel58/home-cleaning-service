@@ -43,6 +43,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.csrf',
+                'cleaning.context_processors.user_profile_context',
+                'cleaning.context_processors.notifications_context',
             ],
         },
     },
@@ -114,8 +116,15 @@ DEFAULT_FROM_EMAIL = 'noreply@cleanhome.local'
 # Session settings
 SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds (default Django value)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session even if browser closes
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
 CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Message storage
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Security headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -129,3 +138,8 @@ SECURE_CONTENT_SECURITY_POLICY = {
 
 # ======================== PASSWORD RESET SETTINGS ========================
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds
+# ======================== ERROR HANDLER SETTINGS ========================
+# Custom error page handlers
+handler404 = 'cleaning.views.error_404'
+handler403 = 'cleaning.views.error_403'
+handler500 = 'cleaning.views.error_500'

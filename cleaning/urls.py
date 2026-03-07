@@ -13,6 +13,7 @@ urlpatterns = [
     
     # ===== CUSTOMER ROUTES =====
     path('index/', views.index, name='index'),
+    path('home/', views.logged_in_home, name='logged_in_home'),
     path('dashboard/', views.customer_dashboard, name='customer_dashboard'),
     path('services/', views.services, name='services'),
     path('service/<int:service_id>/', views.service_detail, name='service_detail'),
