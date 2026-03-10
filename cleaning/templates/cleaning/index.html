@@ -1,91 +1,93 @@
+{% extends 'cleaning/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - CleanHome</title>
-    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
-</head>
-<body>
-    <div class="navbar">
-        <a href="{% url 'index' %}" class="logo">CleanHome</a>
-        <nav>
-            <a href="{% url 'services' %}">Services</a>
-            <a href="{% url 'user_profile' %}">My Profile</a>
-            <a href="{% url 'logout' %}" class="logout">Logout</a>
-        </nav>
-    </div>
-    
-    <div class="hero">
-        <h1>Expert Home Cleaning</h1>
-        <p>Reliable professionals at your doorstep.</p>
-        <a href="{% url 'services' %}" class="btn-book">Book a Service Now</a>
-    </div>
-    
-    <div style="background: #f5f5f5; padding: 40px 20px; margin: 30px 0; text-align: center;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto;">
-            <div>
-                <h2 style="color: #6f42c1;">{{ total_customers }}</h2>
-                <p>Total Customers</p>
-            </div>
-            <div>
-                <h2 style="color: #28a745;">{{ total_bookings }}</h2>
-                <p>Bookings Completed</p>
-            </div>
-            <div>
-                <h2 style="color: #ff9800;">100+</h2>
-                <p>Expert Providers</p>
-            </div>
-        </div>
-    </div>
-    
-    {% if featured_services %}
-    <div style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
-        <h2 style="text-align: center; margin-bottom: 30px;">Featured Services</h2>
-        <div class="services-grid">
-            {% for service in featured_services %}
-            <div class="service-card">
-                <div class="service-header">
-                    <h3>{{ service.name }}</h3>
-                    <span class="badge" style="background: #ff6b6b; color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8em;">Best Value</span>
-                </div>
-                <div class="service-body">
-                    <p>{{ service.description|truncatewords:20 }}</p>
-                    <p><strong>Price:</strong> ₹{{ service.price }}</p>
-                    <p><strong>Rating:</strong> ⭐ {{ service.average_rating|default:"Not rated" }}</p>
-                    <a href="{% url 'service_detail' service.id %}" class="btn-view">View Details</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    
-    <div class="features">
-        <div class="feature">
-            <div class="feature-icon">✓</div>
-            <h3>Quality Assured</h3>
-            <p>Professional cleaning services you can trust</p>
-        </div>
+
+{% block content %}
+
+<div class="hero">
+    <h1>Expert Home Cleaning</h1>
+    <p>Reliable professionals at your doorstep.</p>
+    <a href="{% url 'services' %}" class="btn-book">Book a Service Now</a>
+</div>
+
+<div class="stats">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:20px; max-width:1000px; margin:0 auto;">
         
-        <div class="feature">
-            <div class="feature-icon">$</div>
-            <h3>Affordable Prices</h3>
-            <p>Get the best value for your money</p>
+        <div>
+            <h2 style="color:#6f42c1;">{{ total_customers }}</h2>
+            <p>Total Customers</p>
         </div>
-        
-        <div class="feature">
-            <div class="feature-icon">📍</div>
-            <h3>Location Based</h3>
-            <p>Find services in your area</p>
+
+        <div>
+            <h2 style="color:#28a745;">{{ total_bookings }}</h2>
+            <p>Bookings Completed</p>
         </div>
-        
-        <div class="feature">
-            <div class="feature-icon">⭐</div>
-            <h3>Verified Professionals</h3>
-            <p>All providers are verified and rated</p>
+
+        <div>
+            <h2 style="color:#ff9800;">100+</h2>
+            <p>Expert Providers</p>
         </div>
+
     </div>
-</body>
-</html>
+</div>
+
+{% if featured_services %}
+<div style="max-width:1000px; margin:40px auto; padding:0 20px;">
+
+<h2 style="text-align:center; margin-bottom:30px;">Featured Services</h2>
+
+<div class="services-grid">
+
+{% for service in featured_services %}
+
+<div class="service-card">
+
+<div class="service-header">
+<h3>{{ service.name }}</h3>
+</div>
+
+<div class="service-body">
+<p>{{ service.description|truncatewords:20 }}</p>
+
+<p><strong>Price:</strong> ₹{{ service.price }}</p>
+
+<p><strong>Rating:</strong> ⭐ {{ service.average_rating|default:"Not rated" }}</p>
+
+<a href="{% url 'service_detail' service.id %}" class="btn btn-primary">
+View Details
+</a>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+</div>
+{% endif %}
+
+<div class="features">
+
+<div class="feature">
+<h3>✓ Quality Assured</h3>
+<p>Professional cleaning services you can trust</p>
+</div>
+
+<div class="feature">
+<h3>₹ Affordable Prices</h3>
+<p>Get the best value for your money</p>
+</div>
+
+<div class="feature">
+<h3>📍 Location Based</h3>
+<p>Find services in your area</p>
+</div>
+
+<div class="feature">
+<h3>⭐ Verified Professionals</h3>
+<p>All providers are verified and rated</p>
+</div>
+
+</div>
+
+{% endblock %}

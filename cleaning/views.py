@@ -87,72 +87,63 @@ def signup_view(request):
 
 def login_view(request):
     """Handle user login for customers, providers, and admins"""
-    # If user is already authenticated, redirect to their appropriate dashboard
+
+    # If already logged in
     if request.user.is_authenticated:
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-            if profile.user_type == 'customer':
-                return redirect('logged_in_home')
-            elif profile.user_type == 'provider':
-                if profile.is_verified_by_admin:
-                    return redirect('logged_in_home')
-                else:
-                    messages.warning(request, 'Your account is pending admin verification.')
-                    return redirect('logout')
-            elif request.user.is_staff and request.user.is_superuser:
-                return redirect('admin:index')
-        except UserProfile.DoesNotExist:
-            return redirect('logout')
+        messages.info(request, "You are already logged in.")
         return redirect('logged_in_home')
-    
+
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
         user_type = request.POST.get('user_type')
-        
-        # First, check if user exists in database
+
         try:
             user_obj = User.objects.get(username=email)
+
             if not user_obj.is_active:
-                messages.error(request, 'Your account has been disabled. Please contact support.')
+                messages.error(request, 'Your account has been disabled.')
                 return render(request, 'cleaning/login.html')
+
         except User.DoesNotExist:
             messages.error(request, 'Invalid email or password')
             return render(request, 'cleaning/login.html')
-        
-        # Now try to authenticate
+
         user = authenticate(request, username=email, password=password)
+
         if user is not None:
             try:
                 profile = UserProfile.objects.get(user=user)
-                
+
                 if user_type == 'customer' and profile.user_type == 'customer':
                     login(request, user)
                     return redirect('logged_in_home')
+
                 elif user_type == 'provider' and profile.user_type == 'provider':
+
                     if profile.is_verified_by_admin:
                         login(request, user)
                         return redirect('logged_in_home')
+
                     else:
-                        messages.warning(request, 'Your account is pending admin verification. You cannot log in yet.')
+                        messages.warning(request, 'Account waiting for admin verification.')
                         return render(request, 'cleaning/login.html')
+
                 else:
-                    messages.error(request, 'Invalid user type for this account')
+                    messages.error(request, 'Invalid user type')
+
             except UserProfile.DoesNotExist:
-                messages.error(request, 'User profile not found. Please contact support.')
+                messages.error(request, 'User profile not found')
+
         else:
             messages.error(request, 'Invalid email or password')
-    
+
     return render(request, 'cleaning/login.html')
 
-
 def logout_view(request):
-    """Handle user logout"""
-    user_email = request.user.email if request.user.is_authenticated else None
     logout(request)
-    messages.success(request, f'You have been logged out successfully. See you again soon!')
+    messages.success(request, "Logged out successfully.")
     return redirect('login')
-
 
 # ======================== CUSTOMER VIEWS ========================
 
