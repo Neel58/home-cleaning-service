@@ -39,12 +39,12 @@ Service.objects.create(name="Sofa Cleaning", service_type="sofa", description="F
 Service.objects.create(name="Move-In Service", service_type="movein", description="Empty house cleaning before you shift.", price=1499, duration="3-4 Hours", is_best_value=False)
 
 # Create Customer User
-customer = User.objects.create_user(username='neel@example.com', email='neel@example.com', password='password123', first_name='Neel', last_name='Shah')
-UserProfile.objects.create(user=customer, user_type='customer', phone='91 98765 43210')
+customer = User.objects.create_user(username='ab@example.com', email='ab@example.com', password='password123', first_name='a', last_name='b')
+UserProfile.objects.create(user=customer, user_type='customer', phone='1234543210')
 
 # Create Provider User
 provider = User.objects.create_user(username='provider@example.com', email='provider@example.com', password='password123')
-UserProfile.objects.create(user=provider, user_type='provider', phone='91 98765 43210', city='Vadodara', experience_years=3, rating=4.8, completed_jobs=142, total_earnings=45000)
+UserProfile.objects.create(user=provider, user_type='provider', phone='9993339992', city='nadiad', experience_years=3, rating=4.8, completed_jobs=142, total_earnings=45000)
 
 exit()
 ```
