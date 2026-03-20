@@ -1,0 +1,67 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}About Us - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4">About CleanHome</h1>
+            
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Our Mission</h5>
+                    <p class="card-text">
+                        CleanHome connects customers with verified professional cleaning service providers. 
+                        We believe everyone deserves a clean, healthy home without the stress of finding reliable cleaners.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Why Choose CleanHome?</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><strong>✓ Verified Professionals:</strong> All our cleaning providers are thoroughly vetted and verified.</li>
+                        <li class="mb-2"><strong>✓ Affordable Prices:</strong> Competitive pricing with transparent rates - no hidden charges.</li>
+                        <li class="mb-2"><strong>✓ Location-Based:</strong> Find services in your area quickly and easily.</li>
+                        <li class="mb-2"><strong>✓ Trusted Reviews:</strong> Read genuine customer reviews to make informed decisions.</li>
+                        <li class="mb-2"><strong>✓ Professional Support:</strong> Our team is available to help with any questions or concerns.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Our Services</h5>
+                    <p class="card-text">
+                        We offer a wide range of professional cleaning services including:
+                    </p>
+                    <ul class="list-unstyled">
+                        <li>• Kitchen Cleaning</li>
+                        <li>• Bathroom Cleaning</li>
+                        <li>• Deep Cleaning</li>
+                        <li>• Regular House Cleaning</li>
+                        <li>• Post-Construction Cleaning</li>
+                        <li>• And much more!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Quality Assurance</h5>
+                    <p class="card-text">
+                        Every service on CleanHome is backed by our quality guarantee. Customer satisfaction is our top priority. 
+                        If you're not satisfied with your service, we'll make it right or offer a full refund.
+                    </p>
+                    <div class="mt-3">
+                        <a href="{% url 'contact' %}" class="btn btn-primary">Get in Touch</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

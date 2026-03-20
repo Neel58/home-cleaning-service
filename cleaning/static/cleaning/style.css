@@ -1,12 +1,13 @@
 /* ============================== GLOBAL STYLES ============================== */
 
 :root {
-    --primary-color: #6f42c1;
-    --primary-dark: #5a2d8f;
-    --secondary-color: #28a745;
-    --secondary-dark: #1e7e34;
+    --primary-color: #0066cc;
+    --primary-dark: #004499;
+    --secondary-color: #6c757d;
+    --secondary-dark: #495057;
     --danger-color: #dc3545;
     --warning-color: #ff9800;
+    --accent-color: #17a2b8;
     --light-bg: #f8f9fa;
     --border-color: #dee2e6;
     --text-dark: #333;
@@ -87,7 +88,7 @@ body {
 /* ============================== HERO SECTION ============================== */
 
 .hero {
-    background: linear-gradient(rgba(111, 66, 193, 0.7), rgba(111, 66, 193, 0.7)),
+    background: linear-gradient(rgba(0, 102, 204, 0.7), rgba(0, 102, 204, 0.7)),
                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23f5f5f5" width="1200" height="600"/></svg>');
     background-size: cover;
     background-position: center;
@@ -266,7 +267,7 @@ body {
 .form-control:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
 .form-control:disabled {

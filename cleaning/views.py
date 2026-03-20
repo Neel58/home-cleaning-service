@@ -464,7 +464,7 @@ def user_profile(request):
         return render(request, 'cleaning/user_profile.html', context)
     except UserProfile.DoesNotExist:
         messages.error(request, 'User profile not found. Please contact support.')
-        return redirect('index')
+        return redirect('logged_in_home')
 
 
 # ======================== PROVIDER VIEWS ========================
@@ -783,7 +783,7 @@ def profile_update(request):
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
         messages.error(request, 'Profile not found')
-        return redirect('index')
+        return redirect('logged_in_home')
     
     if request.method == 'POST':
         form = UserProfileUpdateForm(request.POST, instance=profile)
@@ -845,6 +845,41 @@ def error_404(request, exception=None):
     """Handle 404 - Page Not Found errors"""
     return render(request, 'cleaning/404.html', status=404)
 
+
+
+# ======================== INFO PAGES ========================
+
+def contact_view(request):
+    """Contact page view"""
+    if request.method == 'POST':
+        # Handle contact form submission
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        
+        # Validation
+        if all([name, email, subject, message]):
+            # In production, send email here
+            messages.success(request, 'Thank you for contacting us! We will get back to you soon.')
+            return redirect('contact')
+        else:
+            messages.error(request, 'Please fill in all fields.')
+    
+    return render(request, 'cleaning/contact.html')
+
+
+def about_view(request):
+    """About page view"""
+    return render(request, 'cleaning/about.html')
+
+
+def faq_view(request):
+    """FAQ page view"""
+    return render(request, 'cleaning/faq.html')
+
+
+# ======================== ERROR HANDLERS ========================
 
 def error_403(request, exception=None):
     """Handle 403 - Permission Denied errors"""

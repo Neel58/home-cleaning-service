@@ -12,7 +12,6 @@ urlpatterns = [
     path('password-reset/complete/', views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
     
     # ===== CUSTOMER ROUTES =====
-    path('index/', views.index, name='index'),
     path('home/', views.logged_in_home, name='logged_in_home'),
     path('dashboard/', views.customer_dashboard, name='customer_dashboard'),
     path('services/', views.services, name='services'),
@@ -21,6 +20,11 @@ urlpatterns = [
     path('profile/update/', views.profile_update, name='profile_update'),
     path('booking/<int:booking_id>/cancel/', views.booking_cancel, name='booking_cancel'),
     path('booking/<int:booking_id>/review/', views.submit_review, name='submit_review'),
+    
+    # ===== INFO PAGES =====
+    path('contact/', views.contact_view, name='contact'),
+    path('about/', views.about_view, name='about'),
+    path('faq/', views.faq_view, name='faq'),
     
     # ===== PROVIDER ROUTES =====
     path('provider/dashboard/', views.provider_dashboard, name='provider_dashboard'),

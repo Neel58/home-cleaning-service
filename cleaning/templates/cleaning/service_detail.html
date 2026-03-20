@@ -61,7 +61,7 @@
                             <a href="{% url 'customer_dashboard' %}" class="btn btn-primary btn-sm">📊 Track Booking</a>
                         </div>
                         <div class="btn-group" role="group">
-                            <a href="{% url 'provider_profile' user_booking.provider.id %}" class="btn btn-outline-primary btn-sm">👤 View Provider Profile</a>
+                            <a href="{% url 'provider_profile' %}?id={{ user_booking.provider.id }}" class="btn btn-outline-primary btn-sm">👤 View Provider Profile</a>
                         </div>
                     </div>
                 </div>

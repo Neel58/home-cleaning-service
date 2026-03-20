@@ -18,8 +18,8 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="{% if user.is_authenticated %}{% url 'logged_in_home' %}{% else %}{% url 'index' %}{% endif %}">
-                <span style="color: #6f42c1;">CleanHome</span>
+            <a class="navbar-brand fw-bold" href="{% url 'logged_in_home' %}">
+                <span style="color: #0066cc;">CleanHome</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,56 +28,34 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <!-- Services Link (visible to all) -->
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'services' %}">Services</a>
                     </li>
-                    
-                    <!-- Home Link (visible to all) -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{% if user.is_authenticated %}{% url 'logged_in_home' %}{% else %}{% url 'index' %}{% endif %}">Home</a>
+                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
                     </li>
-
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'faq' %}">FAQ</a>
+                    </li>
                     {% if user.is_authenticated %}
-                        <!-- Customer Navigation -->
-                        {% if user.userprofile.user_type == 'customer' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'customer_dashboard' %}">Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'user_profile' %}">My Profile</a>
-                            </li>
-                        {% endif %}
-
-                        <!-- Provider Navigation -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logged_in_home' %}">Dashboard</a>
+                        </li>
                         {% if user.userprofile.user_type == 'provider' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'provider_dashboard' %}">Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'provider_profile' %}">My Profile</a>
-                            </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'provider_dashboard' %}">Provider Portal</a>
+                        </li>
                         {% endif %}
-
-                        <!-- Admin Navigation -->
-                        {% if user.is_staff and user.is_superuser %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Admin
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="adminMenu">
-                                    <li><a class="dropdown-item" href="{% url 'provider_verification_list' %}">Verify Providers</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'service_category_list' %}">Manage Categories</a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
-
-                        <!-- Logout (visible to all authenticated users) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'user_profile' %}">My Profile</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                         </li>
                     {% else %}
-                        <!-- Anonymous Navigation -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">Login</a>
                         </li>
@@ -119,7 +97,7 @@
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
                         <li><a href="{% url 'services' %}" class="text-muted text-decoration-none">Services</a></li>
-                        <li><a href="{% url 'index' %}" class="text-muted text-decoration-none">Home</a></li>
+                        <li><a href="{% url 'logged_in_home' %}" class="text-muted text-decoration-none">Home</a></li>
                     </ul>
                 </div>
                 <div class="col-md-4">

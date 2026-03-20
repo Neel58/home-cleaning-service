@@ -1,0 +1,149 @@
+{% extends 'cleaning/base.html' %}
+{% load static %}
+
+{% block title %}FAQ - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4">Frequently Asked Questions</h1>
+
+            <div class="accordion" id="faqAccordion">
+                <!-- Customer Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq1">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                            How do I book a cleaning service?
+                        </button>
+                    </h2>
+                    <div id="collapse1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Simply browse our Services page, select the service you need, choose a provider, and confirm your booking. 
+                            You'll receive updates about your booking status in real-time.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                            What payment methods are accepted?
+                        </button>
+                    </h2>
+                    <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We currently accept all major credit cards, debit cards, and digital payment methods. 
+                            All payments are processed securely through our encrypted payment gateway.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                            Can I reschedule or cancel my booking?
+                        </button>
+                    </h2>
+                    <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes, you can cancel your booking through your dashboard. Please note that cancellations made 
+                            less than 24 hours before the scheduled time may incur a cancellation fee.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq4">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
+                            Are the service providers verified?
+                        </button>
+                    </h2>
+                    <div id="collapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Absolutely! All service providers on CleanHome go through a rigorous verification process including 
+                            background checks, reference verification, and quality assurance reviews.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq5">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5">
+                            What if I'm not satisfied with the service?
+                        </button>
+                    </h2>
+                    <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Customer satisfaction is our priority. If you're not satisfied, you can file a complaint through your dashboard, 
+                            and our support team will review it within 24 hours. We offer adjustments or full refunds if necessary.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Provider Questions -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq6">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6">
+                            How do I become a service provider?
+                        </button>
+                    </h2>
+                    <div id="collapse6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Sign up on our platform, create your provider profile, and submit your documents for verification. 
+                            Once approved by our admin team, you can start accepting jobs.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq7">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7">
+                            How much commission does CleanHome take?
+                        </button>
+                    </h2>
+                    <div id="collapse7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            CleanHome takes a competitive commission on each booking. The exact percentage is displayed when you set your rates. 
+                            Please contact support for detailed commission information.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq8">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8">
+                            How do I set my pricing?
+                        </button>
+                    </h2>
+                    <div id="collapse8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            You set your own pricing for each service through your provider dashboard. You're free to adjust rates 
+                            at any time based on your market and demand.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq9">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse9">
+                            How do I receive payments?
+                        </button>
+                    </h2>
+                    <div id="collapse9" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Earnings are typically transferred to your bank account within 2-3 business days after each completed job. 
+                            You can track your earnings in your provider dashboard.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <p class="text-muted">Can't find what you're looking for?</p>
+                <a href="{% url 'contact' %}" class="btn btn-primary">Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
