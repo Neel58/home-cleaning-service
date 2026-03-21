@@ -1,63 +1,62 @@
+{% extends 'cleaning/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Provider Profile - CleanHome</title>
-    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
-</head>
-<body>
-    <div class="provider-navbar">
-        <a href="{% url 'provider_dashboard' %}" class="logo">Partner App</a>
-        <nav>
-            <a href="{% url 'provider_dashboard' %}">Requests</a>
-            <a href="{% url 'provider_profile' %}">Profile</a>
-            <a href="{% url 'logout' %}" class="logout">Logout</a>
-        </nav>
-    </div>
-    
-    <div class="provider-profile">
-        <div class="provider-card">
-            <div class="provider-avatar">{{ provider.first_name|slice:":1" }}</div>
-            
-            <h2>{{ provider.first_name }}</h2>
-            <p>Email: {{ provider.email }}</p>
-            <p>Rating: <span class="rating">⭐ {{ profile.rating|default:"Not rated yet" }}</span></p>
-            
-            <div class="provider-details">
-                <p><strong>📞 Phone:</strong> {{ profile.phone }}</p>
-                <p><strong>📍 City:</strong> {{ profile.city|default:"Not specified" }}</p>
-                <p><strong>💼 Experience:</strong> {{ profile.experience_years }} Years</p>
-                <p><strong>✅ Completed Jobs:</strong> {{ completed_jobs }}</p>
-                <p><strong>💰 Total Earnings:</strong> ₹{{ profile.total_earnings }}</p>
-                <p><strong>Status:</strong> 
-                    {% if profile.is_verified_by_admin %}
-                    <span style="color: green; font-weight: bold;">✓ Verified</span>
-                    {% else %}
-                    <span style="color: orange; font-weight: bold;">⏳ Pending</span>
-                    {% endif %}
-                </p>
+
+{% block title %}Provider Profile - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <div class="avatar bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                        {{ provider.first_name|slice:":1"|upper }}
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <h2 class="mb-1">{{ provider.first_name }}</h2>
+                    <p class="text-muted mb-3">{{ provider.email }}</p>
+                    <p class="mb-1"><strong>Rating:</strong> <span class="text-warning">⭐ {{ profile.rating|default:"Not rated yet" }}</span></p>
+                    
+                    <div class="my-3">
+                        <p class="mb-2"><strong>📞 Phone:</strong> {{ profile.phone }}</p>
+                        <p class="mb-2"><strong>📍 City:</strong> {{ profile.city|default:"Not specified" }}</p>
+                        <p class="mb-2"><strong>💼 Experience:</strong> {{ profile.experience_years }} Years</p>
+                        <p class="mb-2"><strong>✅ Completed Jobs:</strong> {{ completed_jobs }}</p>
+                        <p class="mb-2"><strong>💰 Total Earnings:</strong> ₹{{ profile.total_earnings }}</p>
+                        <p class="mb-0"><strong>Status:</strong> 
+                            {% if profile.is_verified_by_admin %}
+                                <span class="badge bg-success">✓ Verified</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">⏳ Pending</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        {% if reviews %}
-        <div class="provider-card" style="margin-top: 30px;">
-            <h3>Customer Reviews ({{ reviews|length }})</h3>
+    </div>
+    
+    {% if reviews %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Customer Reviews ({{ reviews|length }})</h4>
             {% for review in reviews %}
-            <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
-                <p><strong>{{ review.booking.customer.first_name }}</strong></p>
-                <p style="font-weight: bold; color: #ff9800;">⭐ {{ review.rating }}/5</p>
+            <div class="border-bottom pb-3 mb-3">
+                <p class="mb-1"><strong>{{ review.booking.customer.first_name }}</strong></p>
+                <p class="mb-1 text-warning"><strong>⭐ {{ review.rating }}/5</strong></p>
                 <p>{{ review.comment }}</p>
-                <p style="font-size: 0.9em; color: #999;">{{ review.created_at|date:"M d, Y" }}</p>
+                <p class="text-muted small">{{ review.created_at|date:"M d, Y" }}</p>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="provider-card" style="margin-top: 30px;">
-            <p style="text-align: center; color: #999;">No reviews yet</p>
+        <div class="card shadow-sm">
+            <div class="card-body text-center text-muted">
+                <p>No reviews yet</p>
+            </div>
         </div>
         {% endif %}
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

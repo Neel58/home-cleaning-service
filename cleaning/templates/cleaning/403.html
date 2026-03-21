@@ -1,62 +1,24 @@
+{% extends 'cleaning/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Access Denied - CleanHome</title>
-    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
-    <style>
-        .error-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #6f42c1 0%, #5a2d8f 100%);
-            padding: 2rem;
-        }
-        
-        .error-content {
-            background: white;
-            padding: 3rem 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .error-code {
-            font-size: 5rem;
-            color: #ff9800;
-            font-weight: bold;
-            margin: 0;
-        }
-        
-        .error-title {
-            color: #6f42c1;
-            font-size: 1.5rem;
-            margin: 1rem 0;
-        }
-        
-        .error-message {
-            color: #666;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <div class="error-content">
-            <p class="error-code">403</p>
-            <h1 class="error-title">Access Denied</h1>
-            <p class="error-message">
-                You don't have permission to access this page. 
-                Please check your account or contact support.
-            </p>
-            <a href="{% url 'login' %}" class="btn btn-primary">Go to Login</a>
+
+{% block title %}Access Denied - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5 text-center">
+                    <p class="display-1 text-warning mb-0">403</p>
+                    <h1 class="card-title text-primary mb-3">Access Denied</h1>
+                    <p class="card-text text-muted mb-4">
+                        You don't have permission to access this page. 
+                        Please check your account or contact support.
+                    </p>
+                    <a href="{% url 'logged_in_home' %}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+                </div>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

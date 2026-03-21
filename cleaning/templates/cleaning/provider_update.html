@@ -1,50 +1,58 @@
+{% extends 'cleaning/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Job - CleanHome</title>
-    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
-</head>
-<body>
-    <div class="provider-navbar">
-        <a href="{% url 'provider_dashboard' %}" class="logo">Partner App</a>
-        <nav>
-            <a href="{% url 'provider_dashboard' %}">Requests</a>
-            <a href="{% url 'provider_profile' %}">Profile</a>
-            <a href="{% url 'logout' %}" class="logout">Logout</a>
-        </nav>
-    </div>
-    
-    <div class="update-container">
-        <div class="update-card">
-            <h1>Update Service Status</h1>
-            <p>Booking ID: #{{ booking.id }}</p>
-            
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <label><strong>Current Status</strong></label>
-                <select name="status">
-                    <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                    <option value="work_started" {% if booking.status == 'work_started' %}selected{% endif %}>Work Started</option>
-                    <option value="in_progress" {% if booking.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-                    <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
-                </select>
-                
-                <label><strong>Add Notes</strong></label>
-                <textarea name="notes" placeholder="e.g. Living room done, kitchen pending">{{ booking.notes }}</textarea>
-                
-                <label><strong>Upload Photo (Proof of work)</strong></label>
-                <input type="file" name="photo" accept="image/*">
-                
-                <div>
-                    <button type="submit" class="btn-save">Save Update</button>
-                    <a href="{% url 'provider_dashboard' %}" class="btn-cancel-action">Cancel</a>
+
+{% block title %}Update Job - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="card-title text-primary mb-1">Update Service Status</h1>
+                    <p class="text-muted mb-4">Booking ID: <strong>#{{ booking.id }}</strong></p>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="status" class="form-label"><strong>Current Status</strong></label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="work_started" {% if booking.status == 'work_started' %}selected{% endif %}>Work Started</option>
+                                <option value="in_progress" {% if booking.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label"><strong>Add Notes</strong></label>
+                            <textarea class="form-control" id="notes" name="notes" rows="5" placeholder="e.g. Living room done, kitchen pending">{{ booking.notes }}</textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="photo" class="form-label"><strong>Upload Photo (Proof of work)</strong></label>
+                            <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                            <small class="text-muted d-block mt-2">Supported formats: JPG, PNG, GIF. Max size: 5MB</small>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Save Update</button>
+                            <a href="{% url 'provider_dashboard' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

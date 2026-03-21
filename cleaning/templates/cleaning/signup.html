@@ -1,71 +1,73 @@
+{% extends 'cleaning/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - CleanHome</title>
-    <link rel="stylesheet" href="{% static 'cleaning/style.css' %}">
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-card">
-            <h1>CleanHome</h1>
-            <p>Create your account</p>
+
+{% block title %}Sign Up - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h1 class="card-title text-center mb-2 text-primary" style="font-size: 1.8rem;">CleanHome</h1>
+                    <p class="text-center text-muted mb-4">Create your account</p>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
             
-            {% if messages %}
-                {% for message in messages %}
-                    <div style="color: red; margin-bottom: 15px;">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-            
-            <form method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <input type="text" name="name" placeholder="Full Name" required>
+                    <form method="POST" class="needs-validation">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="John Doe" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="your.email@example.com" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Min. 8 characters" required minlength="8">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password_confirm" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm" placeholder="Confirm your password" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="(555) 123-4567" required>
+                        </div>
+                        
+                        <p class="text-center text-muted small mb-3">(Select Role for Prototype)</p>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="user_type" value="customer" class="btn btn-primary btn-lg">
+                                Sign Up as Customer
+                            </button>
+                            <button type="submit" name="user_type" value="provider" class="btn btn-success btn-lg">
+                                Sign Up as Provider
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-3">
+                    
+                    <p class="text-center mb-0">
+                        Already have an account? <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm">Log In</a>
+                    </p>
                 </div>
-                
-                <div style="text-align: center; margin: 10px 0;">&gt;</div>
-                
-                <div class="form-group">
-                    <input type="email" name="email" placeholder="Email Address" required>
-                </div>
-                
-                <div style="text-align: center; margin: 10px 0;">&gt;</div>
-                
-                <div class="form-group">
-                    <input type="password" name="password" placeholder="Password (min 8 characters)" required minlength="8">
-                </div>
-                
-                <div style="text-align: center; margin: 10px 0;">&gt;</div>
-                
-                <div class="form-group">
-                    <input type="password" name="password_confirm" placeholder="Confirm Password" required>
-                </div>
-                
-                <div style="text-align: center; margin: 10px 0;">&gt;</div>
-                
-                <div class="form-group">
-                    <input type="tel" name="phone" placeholder="Phone Number" required>
-                </div>
-                
-                <div style="text-align: center; margin: 10px 0;">&gt;</div>
-                
-                <p class="role-text">(Select Role for Prototype)</p>
-                
-                <button type="submit" name="user_type" value="customer" class="btn btn-primary">
-                    Sign Up as Customer
-                </button>
-                
-                <button type="submit" name="user_type" value="provider" class="btn btn-secondary">
-                    Sign Up as Provider
-                </button>
-            </form>
-            
-            <p class="signup-link">
-                Already have an account? <a href="{% url 'login' %}">Log In</a>
-            </p>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
