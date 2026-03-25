@@ -40,4 +40,8 @@ urlpatterns = [
     path('admin/categories/create/', views.service_category_create, name='service_category_create'),
     path('admin/categories/<int:category_id>/edit/', views.service_category_edit, name='service_category_edit'),
     path('admin/categories/<int:category_id>/delete/', views.service_category_delete, name='service_category_delete'),
+    
+    # ===== NOTIFICATIONS =====
+    path('notifications/read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q, Sum, Avg
@@ -877,6 +878,33 @@ def about_view(request):
 def faq_view(request):
     """FAQ page view"""
     return render(request, 'cleaning/faq.html')
+
+# ======================== NOTIFICATION VIEWS ========================
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark single notification as read"""
+    notification = get_object_or_404(
+        Notification,
+        id=notification_id,
+        user=request.user
+    )
+    notification.is_read = True
+    notification.save()
+    
+    return redirect(request.META.get('HTTP_REFERER', 'logged_in_home'))
+
+
+@login_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).update(is_read=True)
+    
+    return redirect(request.META.get('HTTP_REFERER', 'logged_in_home'))
+
 
 
 # ======================== ERROR HANDLERS ========================

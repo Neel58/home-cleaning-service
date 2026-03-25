@@ -24,20 +24,26 @@ def user_profile_context(request):
     return context
 
 
+
 def notifications_context(request):
-    """
-    Add unread notifications count to all templates for authenticated users
-    """
     context = {}
     
     if request.user.is_authenticated:
         try:
+            notifications = Notification.objects.filter(
+                user=request.user
+            ).order_by('-created_at')[:5]
+
             unread_count = Notification.objects.filter(
-                user=request.user, 
+                user=request.user,
                 is_read=False
             ).count()
+
+            context['notifications'] = notifications
             context['unread_notifications_count'] = unread_count
+
         except Exception:
+            context['notifications'] = []
             context['unread_notifications_count'] = 0
     
     return context
