@@ -1,0 +1,119 @@
+{% extends 'cleaning/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">Admin Analytics Dashboard 📊</h2>
+
+    <!-- STATS -->
+    <div class="row text-center mb-4">
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Total Bookings</h6>
+                <h3>{{ total_bookings }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Total Revenue</h6>
+                <h3>₹{{ total_revenue }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Customers</h6>
+                <h3>{{ total_customers }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3">
+                <h6>Providers</h6>
+                <h3>{{ total_providers }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="row">
+        <div class="col-md-6">
+            <canvas id="bookingsChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- TOP SERVICES -->
+    <h4 class="mt-5">Top Services</h4>
+    <table class="table">
+        <tr><th>Service</th><th>Bookings</th></tr>
+        {% for s in top_services %}
+        <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- RECENT BOOKINGS -->
+    <h4 class="mt-4">Recent Bookings</h4>
+    <table class="table">
+        <tr><th>Customer</th><th>Service</th><th>Status</th></tr>
+        {% for b in recent_bookings %}
+        <tr>
+            <td>{{ b.customer.first_name }}</td>
+            <td>{{ b.service.name }}</td>
+            <td>{{ b.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const months = {{ monthly_bookings|safe }};
+const revenue = {{ monthly_revenue|safe }};
+
+new Chart(document.getElementById('bookingsChart'), {
+    type: 'bar',
+    data: {
+        labels: months.map(m => m.month),
+        datasets: [{
+            label: 'Bookings',
+            data: months.map(m => m.count)
+        }]
+    }
+});
+
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels: revenue.map(r => r.month),
+        datasets: [{
+            label: 'Revenue',
+            data: revenue.map(r => r.amount)
+        }]
+    }
+});
+
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys({{ bookings_by_status|safe }}),
+        datasets: [{
+            data: Object.values({{ bookings_by_status|safe }})
+        }]
+    }
+});
+</script>
+
+{% endblock %}

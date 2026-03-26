@@ -774,6 +774,103 @@ def service_category_delete(request, category_id):
     }
     return render(request, 'cleaning/admin/category_confirm_delete.html', context)
 
+from django.db.models import Count, Sum, Avg
+from django.utils.timezone import now
+from datetime import timedelta
+from django.db.models.functions import TruncMonth
+
+@require_admin
+def admin_analytics(request):
+    from .models import Booking, Service, UserProfile, Payment, Review
+
+    # ===== BASIC STATS =====
+    total_bookings = Booking.objects.count()
+    bookings_this_month = Booking.objects.filter(
+        created_at__month=now().month,
+        created_at__year=now().year
+    ).count()
+
+    total_revenue = Payment.objects.filter(status='completed').aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    revenue_this_month = Payment.objects.filter(
+        status='completed',
+        paid_at__month=now().month,
+        paid_at__year=now().year
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    total_customers = UserProfile.objects.filter(user_type='customer').count()
+    total_providers = UserProfile.objects.filter(user_type='provider').count()
+
+    # ===== BOOKINGS BY STATUS =====
+    statuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled']
+    bookings_by_status = {
+        status: Booking.objects.filter(status=status).count()
+        for status in statuses
+    }
+
+    # ===== LAST 6 MONTHS DATA =====
+    six_months_ago = now() - timedelta(days=180)
+
+    monthly_bookings_qs = Booking.objects.filter(
+        created_at__gte=six_months_ago
+    ).annotate(month=TruncMonth('created_at')).values('month').annotate(
+        count=Count('id')
+    ).order_by('month')
+
+    monthly_revenue_qs = Payment.objects.filter(
+        status='completed',
+        paid_at__gte=six_months_ago
+    ).annotate(month=TruncMonth('paid_at')).values('month').annotate(
+        amount=Sum('amount')
+    ).order_by('month')
+
+    monthly_bookings = [
+        {'month': m['month'].strftime('%b'), 'count': m['count']}
+        for m in monthly_bookings_qs
+    ]
+
+    monthly_revenue = [
+        {'month': m['month'].strftime('%b'), 'amount': m['amount'] or 0}
+        for m in monthly_revenue_qs
+    ]
+
+    # ===== TOP SERVICES =====
+    top_services_qs = Booking.objects.values(
+        'service__name'
+    ).annotate(count=Count('id')).order_by('-count')[:3]
+
+    top_services = [
+        {'name': s['service__name'], 'count': s['count']}
+        for s in top_services_qs
+    ]
+
+    # ===== AVERAGE RATING =====
+    average_rating = Review.objects.aggregate(avg=Avg('rating'))['avg'] or 0
+
+    # ===== RECENT BOOKINGS =====
+    recent_bookings = Booking.objects.select_related(
+        'customer', 'service'
+    ).order_by('-created_at')[:5]
+
+    context = {
+        'total_bookings': total_bookings,
+        'bookings_this_month': bookings_this_month,
+        'total_revenue': total_revenue,
+        'revenue_this_month': revenue_this_month,
+        'total_customers': total_customers,
+        'total_providers': total_providers,
+        'bookings_by_status': bookings_by_status,
+        'monthly_bookings': monthly_bookings,
+        'monthly_revenue': monthly_revenue,
+        'top_services': top_services,
+        'average_rating': round(average_rating, 2),
+        'recent_bookings': recent_bookings,
+    }
+
+    return render(request, 'cleaning/admin/analytics.html', context)
+
 
 # ======================== PROFILE UPDATE VIEWS ========================
 
