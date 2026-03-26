@@ -10,6 +10,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
+     'jazzmin', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -73,6 +74,32 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+JAZZMIN_SETTINGS = {
+    "site_title": "CleanHome Admin",
+    "site_header": "CleanHome Dashboard",
+    "site_brand": "CleanHome",
+    "welcome_sign": "Welcome to CleanHome Admin",
+
+    "topmenu_links": [
+        {"name": "Home", "url": "logged_in_home"},
+        {"name": "Analytics", "url": "admin_analytics"},
+    ],
+
+    "show_sidebar": True,
+    "navigation_expanded": True,
+
+    "icons": {
+        "auth.User": "fas fa-user",
+        "cleaning.Booking": "fas fa-calendar",
+        "cleaning.Service": "fas fa-broom",
+        "cleaning.Payment": "fas fa-money-bill",
+        "cleaning.Review": "fas fa-star",
+        "cleaning.UserProfile": "fas fa-id-card",
+    },
+
+    "theme": "darkly",   # 🔥 TRY: darkly, cyborg, flatly, minty
+}
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
