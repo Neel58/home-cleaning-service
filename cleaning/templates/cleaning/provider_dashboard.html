@@ -100,6 +100,7 @@
                                 <th>Location</th>
                                 <th>Date & Time</th>
                                 <th>Budget</th>
+                                <th>Photo</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -161,26 +162,39 @@
                         <tbody>
                             {% for job in active_jobs %}
                             <tr>
-                                <td>
-                                    <strong>{{ job.customer.first_name }} {{ job.customer.last_name }}</strong>
-                                </td>
-                                <td>{{ job.service.name }}</td>
-                                <td>
-                                    {% if job.status == 'confirmed' %}
-                                        <span class="badge bg-info">{{ job.status|title }}</span>
-                                    {% elif job.status == 'in_progress' %}
-                                        <span class="badge bg-primary">{{ job.status|title }}</span>
-                                    {% elif job.status == 'work_started' %}
-                                        <span class="badge bg-warning">{{ job.status|title }}</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">{{ job.status|title }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ job.date_time|date:"M d, Y H:i" }}</td>
-                                <td>
-                                    <a href="{% url 'provider_update_job' job.id %}" class="btn btn-sm btn-outline-primary">Update Status</a>
-                                </td>
-                            </tr>
+    <td>
+        <strong>{{ job.customer.first_name }} {{ job.customer.last_name }}</strong>
+    </td>
+    <td>{{ job.service.name }}</td>
+    <td>
+        {% if job.status == 'confirmed' %}
+            <span class="badge bg-info">{{ job.status|title }}</span>
+        {% elif job.status == 'in_progress' %}
+            <span class="badge bg-primary">{{ job.status|title }}</span>
+        {% elif job.status == 'work_started' %}
+            <span class="badge bg-warning">{{ job.status|title }}</span>
+        {% else %}
+            <span class="badge bg-secondary">{{ job.status|title }}</span>
+        {% endif %}
+    </td>
+    <td>{{ job.date_time|date:"M d, Y H:i" }}</td>
+
+    <!-- ✅ ADD THIS NEW COLUMN -->
+    <td>
+        {% if job.photo %}  
+            <img src="{{ job.photo.url }}" 
+                 style="width:80px; height:auto; border-radius:6px; border:1px solid #ccc;">
+        {% else %}
+            <span class="text-muted">No Photo</span>
+        {% endif %}
+    </td>
+
+    <td>
+        <a href="{% url 'provider_update_job' job.id %}" class="btn btn-sm btn-outline-primary">
+            Update Status
+        </a>
+    </td>
+</tr>
                             {% endfor %}
                         </tbody>
                     </table>

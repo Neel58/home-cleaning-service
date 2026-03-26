@@ -53,6 +53,7 @@
                             <th>Date & Time</th>
                             <th>Location</th>
                             <th>Status</th>
+                            <th>Photo</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -96,20 +97,37 @@
                     <tbody>
                         {% for booking in active_bookings %}
                         <tr>
-                            <td>{{ booking.service.name }}</td>
-                            <td>
-                                {% if booking.provider %}
-                                    <a href="{% url 'provider_profile' %}?id={{ booking.provider.id }}">{{ booking.provider.first_name }}</a>
-                                {% else %}
-                                    <span class="text-muted">Unassigned</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ booking.date_time|date:"M d, Y H:i" }}</td>
-                            <td><span class="badge bg-info">{{ booking.get_status_display }}</span></td>
-                            <td>
-                                <a href="{% url 'booking_cancel' booking.id %}" class="btn btn-sm btn-warning">Cancel</a>
-                            </td>
-                        </tr>
+    <td>{{ booking.service.name }}</td>
+    <td>
+        {% if booking.provider %}
+            <a href="{% url 'provider_profile' %}?id={{ booking.provider.id }}">
+                {{ booking.provider.first_name }}
+            </a>
+        {% else %}
+            <span class="text-muted">Unassigned</span>
+        {% endif %}
+    </td>
+    <td>{{ booking.date_time|date:"M d, Y H:i" }}</td>
+    <td>
+        <span class="badge bg-info">{{ booking.get_status_display }}</span>
+    </td>
+
+    <!-- ✅ PHOTO COLUMN -->
+    <td>
+        {% if booking.photo %}
+            <img src="{{ booking.photo.url }}" 
+                 style="width:80px; height:auto; border-radius:6px; border:1px solid #ccc;">
+        {% else %}
+            <span class="text-muted">No Photo</span>
+        {% endif %}
+    </td>
+
+    <td>
+        <a href="{% url 'booking_cancel' booking.id %}" class="btn btn-sm btn-warning">
+            Cancel
+        </a>
+    </td>
+</tr>
                         {% endfor %}
                     </tbody>
                 </table>
