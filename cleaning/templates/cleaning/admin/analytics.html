@@ -1,119 +1,561 @@
-{% extends 'cleaning/base.html' %}
-
-{% block content %}
-<div class="container mt-4">
-
-    <h2 class="mb-4">Admin Analytics Dashboard 📊</h2>
-
-    <!-- STATS -->
-    <div class="row text-center mb-4">
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h6>Total Bookings</h6>
-                <h3>{{ total_bookings }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h6>Total Revenue</h6>
-                <h3>₹{{ total_revenue }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h6>Customers</h6>
-                <h3>{{ total_customers }}</h3>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h6>Providers</h6>
-                <h3>{{ total_providers }}</h3>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Analytics - CleanHome</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        :root {
+            --jazzmin-primary: #1f2937;
+            --jazzmin-secondary: #6366f1;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .page-header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .page-header-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin: 3px 0 0 0;
+        }
+        
+        .page-header-back {
+            text-decoration: none;
+            color: white;
+            font-size: 0.9rem;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+        
+        .page-header-back:hover {
+            opacity: 1;
+        }
+        
+        /* Small Box - AdminLTE Style */
+        .small-box {
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+            margin-bottom: 15px;
+            background: white;
+            transition: box-shadow 0.2s;
+        }
+        
+        .small-box:hover {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        
+        .small-box-left {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .small-box-left.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .small-box-left.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .small-box-left.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .small-box-left.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .small-box-content {
+            padding: 12px 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .small-box-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+        
+        .small-box-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        
+        .small-box-subtext {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        /* Card - AdminLTE Style */
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: white;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #111827;
+        }
+        
+        .card-body {
+            padding: 12px 15px;
+        }
+        
+        .card-body canvas {
+            min-height: 250px !important;
+        }
+        
+        /* Table Styles */
+        .table {
+            font-size: 0.85rem;
+            margin-bottom: 0;
+        }
+        
+        .table thead th {
+            background-color: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+            padding: 8px 12px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.3px;
+        }
+        
+        .table tbody td {
+            padding: 8px 12px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            font-weight: 500;
+        }
+        
+        .row-section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 15px 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .progress {
+            height: 18px;
+            border-radius: 3px;
+            background-color: #e5e7eb;
+        }
+        
+        .progress-bar {
+            font-size: 0.7rem;
+            line-height: 18px;
+        }
+        
+        .container-analytics {
+            padding: 0 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container-analytics">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h1 class="page-header-title">📊 Analytics Dashboard</h1>
+                    <p class="page-header-subtitle">CleanHome Admin - Performance Metrics & Insights</p>
+                </div>
+                <div class="col-auto">
+                    <a href="{% url 'admin:index' %}" class="page-header-back">
+                        <i class="fas fa-arrow-left"></i> Back to Admin
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- CHARTS -->
-    <div class="row">
-        <div class="col-md-6">
-            <canvas id="bookingsChart"></canvas>
+    <!-- Main Content -->
+    <div class="container-analytics">
+        <!-- Key Metrics Row -->
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="small-box">
+                    <div class="small-box-left">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="small-box-content">
+                        <div class="small-box-label">Total Bookings</div>
+                        <div class="small-box-value">{{ total_bookings }}</div>
+                        <div class="small-box-subtext">This month: {{ bookings_this_month }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="small-box">
+                    <div class="small-box-left success">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="small-box-content">
+                        <div class="small-box-label">Total Revenue</div>
+                        <div class="small-box-value">₹{{ total_revenue|floatformat:0 }}</div>
+                        <div class="small-box-subtext">This month: ₹{{ revenue_this_month|floatformat:0 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="small-box">
+                    <div class="small-box-left info">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="small-box-content">
+                        <div class="small-box-label">Customers</div>
+                        <div class="small-box-value">{{ total_customers }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="small-box">
+                    <div class="small-box-left warning">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="small-box-content">
+                        <div class="small-box-label">Providers</div>
+                        <div class="small-box-value">{{ total_providers }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <canvas id="revenueChart"></canvas>
+
+        <!-- Charts Section -->
+        <div class="row-section-title">Performance Metrics</div>
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar"></i> Monthly Bookings
+                    </div>
+                    <div class="card-body">
+                        <canvas id="bookingsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line"></i> Monthly Revenue
+                    </div>
+                    <div class="card-body">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie"></i> Bookings by Status
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables Section -->
+        <div class="row-section-title">Top Performing Services</div>
+        
+        <div class="card">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Bookings</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in top_services %}
+                    <tr>
+                        <td><strong>{{ service.name }}</strong></td>
+                        <td>{{ service.count }}</td>
+                        <td>
+                            <div class="progress" style="width: 150px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {{ service.count|add:0 }}%;" 
+                                     aria-valuenow="{{ service.count }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">No services yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row-section-title">Recent Bookings</div>
+
+        <div class="card">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in recent_bookings %}
+                    <tr>
+                        <td>
+                            <strong>{{ booking.customer.first_name }}</strong><br>
+                            <small class="text-muted">{{ booking.customer.email }}</small>
+                        </td>
+                        <td>{{ booking.service.name }}</td>
+                        <td>
+                            {% if booking.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif booking.status == 'confirmed' %}
+                                <span class="badge bg-info">Confirmed</span>
+                            {% elif booking.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                            {% elif booking.status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif booking.status == 'cancelled' %}
+                                <span class="badge bg-danger">Cancelled</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ booking.status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if booking.payment_status == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                            {% elif booking.payment_status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ booking.payment_status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ booking.created_at|date:"M d, Y" }}</small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No recent bookings</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Spacing -->
+        <div style="margin-bottom: 30px;"></div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <canvas id="statusChart"></canvas>
-        </div>
-    </div>
+    <!-- Chart.js Configuration -->
+    <script>
+        // Chart default options
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#6b7280';
+        Chart.defaults.borderColor = '#e5e7eb';
 
-    <!-- TOP SERVICES -->
-    <h4 class="mt-5">Top Services</h4>
-    <table class="table">
-        <tr><th>Service</th><th>Bookings</th></tr>
-        {% for s in top_services %}
-        <tr>
-            <td>{{ s.name }}</td>
-            <td>{{ s.count }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+        const months = {{ monthly_bookings|safe }};
+        const revenue = {{ monthly_revenue|safe }};
+        const statusData = {{ bookings_by_status|safe }};
 
-    <!-- RECENT BOOKINGS -->
-    <h4 class="mt-4">Recent Bookings</h4>
-    <table class="table">
-        <tr><th>Customer</th><th>Service</th><th>Status</th></tr>
-        {% for b in recent_bookings %}
-        <tr>
-            <td>{{ b.customer.first_name }}</td>
-            <td>{{ b.service.name }}</td>
-            <td>{{ b.status }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+        // Monthly Bookings Chart
+        const bookingsCtx = document.getElementById('bookingsChart').getContext('2d');
+        new Chart(bookingsCtx, {
+            type: 'bar',
+            data: {
+                labels: months.map(m => m.month),
+                datasets: [{
+                    label: 'Bookings',
+                    data: months.map(m => m.count),
+                    backgroundColor: '#6366f1',
+                    borderColor: '#4f46e5',
+                    borderWidth: 0,
+                    borderRadius: 3,
+                    barThickness: 'flex'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        border: { display: false },
+                        grid: { color: '#f3f4f6', drawBorder: false },
+                        ticks: { padding: 8 }
+                    },
+                    x: {
+                        border: { display: false },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
 
-</div>
+        // Monthly Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenue.map(r => r.month),
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: revenue.map(r => r.amount),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        border: { display: false },
+                        grid: { color: '#f3f4f6', drawBorder: false },
+                        ticks: { padding: 8, callback: function(value) { return '₹' + value; } }
+                    },
+                    x: {
+                        border: { display: false },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        // Booking Status Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: [
+                        '#f59e0b', // pending
+                        '#06b6d4', // confirmed
+                        '#6366f1', // in_progress
+                        '#10b981', // completed
+                        '#ef4444'  // cancelled
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 10,
+                            font: { size: 11 },
+                            boxWidth: 12
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 
-<script>
-const months = {{ monthly_bookings|safe }};
-const revenue = {{ monthly_revenue|safe }};
-
-new Chart(document.getElementById('bookingsChart'), {
-    type: 'bar',
-    data: {
-        labels: months.map(m => m.month),
-        datasets: [{
-            label: 'Bookings',
-            data: months.map(m => m.count)
-        }]
-    }
-});
-
-new Chart(document.getElementById('revenueChart'), {
-    type: 'line',
-    data: {
-        labels: revenue.map(r => r.month),
-        datasets: [{
-            label: 'Revenue',
-            data: revenue.map(r => r.amount)
-        }]
-    }
-});
-
-new Chart(document.getElementById('statusChart'), {
-    type: 'doughnut',
-    data: {
-        labels: Object.keys({{ bookings_by_status|safe }}),
-        datasets: [{
-            data: Object.values({{ bookings_by_status|safe }})
-        }]
-    }
-});
-</script>
-
-{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

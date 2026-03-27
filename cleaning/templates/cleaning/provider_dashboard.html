@@ -156,45 +156,61 @@
                                 <th>Service</th>
                                 <th>Status</th>
                                 <th>Scheduled</th>
+                                <th>Photo Proof</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for job in active_jobs %}
                             <tr>
-    <td>
-        <strong>{{ job.customer.first_name }} {{ job.customer.last_name }}</strong>
-    </td>
-    <td>{{ job.service.name }}</td>
-    <td>
-        {% if job.status == 'confirmed' %}
-            <span class="badge bg-info">{{ job.status|title }}</span>
-        {% elif job.status == 'in_progress' %}
-            <span class="badge bg-primary">{{ job.status|title }}</span>
-        {% elif job.status == 'work_started' %}
-            <span class="badge bg-warning">{{ job.status|title }}</span>
-        {% else %}
-            <span class="badge bg-secondary">{{ job.status|title }}</span>
-        {% endif %}
-    </td>
-    <td>{{ job.date_time|date:"M d, Y H:i" }}</td>
-
-    <!-- ✅ ADD THIS NEW COLUMN -->
-    <td>
-        {% if job.photo %}  
-            <img src="{{ job.photo.url }}" 
-                 style="width:80px; height:auto; border-radius:6px; border:1px solid #ccc;">
-        {% else %}
-            <span class="text-muted">No Photo</span>
-        {% endif %}
-    </td>
-
-    <td>
-        <a href="{% url 'provider_update_job' job.id %}" class="btn btn-sm btn-outline-primary">
-            Update Status
-        </a>
-    </td>
-</tr>
+                                <td>
+                                    <strong>{{ job.customer.first_name }} {{ job.customer.last_name }}</strong>
+                                </td>
+                                <td>{{ job.service.name }}</td>
+                                <td>
+                                    {% if job.status == 'confirmed' %}
+                                        <span class="badge bg-info">{{ job.status|title }}</span>
+                                    {% elif job.status == 'in_progress' %}
+                                        <span class="badge bg-primary">{{ job.status|title }}</span>
+                                    {% elif job.status == 'work_started' %}
+                                        <span class="badge bg-warning">{{ job.status|title }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ job.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ job.date_time|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% if job.photo %}
+                                        <img src="{{ job.photo.url }}" 
+                                             style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd; cursor:pointer;"
+                                             data-bs-toggle="modal" data-bs-target="#photoModal{{ job.id }}">
+                                        <!-- Photo Modal -->
+                                        <div class="modal fade" id="photoModal{{ job.id }}" tabindex="-1">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Work Photo - {{ job.service.name }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body text-center">
+                                                        <img src="{{ job.photo.url }}" style="max-width:100%; border-radius:6px;">
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <small class="text-muted">{{ job.completion_notes }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Not uploaded</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'provider_update_job' job.id %}" class="btn btn-sm btn-outline-primary">
+                                        📝 Update
+                                    </a>
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -217,7 +233,8 @@
                                 <th>Customer</th>
                                 <th>Service</th>
                                 <th>Completed Date</th>
-                                <th>Rating</th>
+                                <th>Photo Proof</th>
+                                <th>Customer Rating</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -226,6 +243,29 @@
                                 <td>{{ job.customer.first_name }} {{ job.customer.last_name }}</td>
                                 <td>{{ job.service.name }}</td>
                                 <td>{{ job.date_time|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if job.photo %}
+                                        <img src="{{ job.photo.url }}" 
+                                             style="width:60px; height:60px; object-fit:cover; border-radius:4px; border:1px solid #ddd; cursor:pointer;"
+                                             data-bs-toggle="modal" data-bs-target="#photoModal{{ job.id }}">
+                                        <!-- Photo Modal -->
+                                        <div class="modal fade" id="photoModal{{ job.id }}" tabindex="-1">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">{{ job.service.name }} - Completed Work</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body text-center">
+                                                        <img src="{{ job.photo.url }}" style="max-width:100%; border-radius:6px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if job.review %}
                                         <span class="text-warning">{{ job.review.rating }} ⭐</span>

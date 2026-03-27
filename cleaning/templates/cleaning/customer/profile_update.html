@@ -26,8 +26,35 @@
                         {% csrf_token %}
                         
                         <div class="mb-3">
+                            <label for="id_first_name" class="form-label">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                            <div class="alert alert-danger mt-2 mb-0">
+                                {% for error in form.first_name.errors %}
+                                <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_last_name" class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                            <div class="alert alert-danger mt-2 mb-0">
+                                {% for error in form.last_name.errors %}
+                                <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
                             <label for="id_phone" class="form-label">Phone Number</label>
                             {{ form.phone }}
+                            <small class="form-text text-muted d-block mt-1">
+                                ⚠️ Phone number cannot be changed here. Contact support to update it.
+                            </small>
                             {% if form.phone.errors %}
                             <div class="alert alert-danger mt-2 mb-0">
                                 {% for error in form.phone.errors %}
@@ -49,9 +76,10 @@
                             {% endif %}
                         </div>
                         
+                        <!-- Only show experience_years for providers -->
                         {% if profile.user_type == 'provider' %}
                         <div class="mb-3">
-                            <label for="id_experience_years" class="form-label">Experience (Years)</label>
+                            <label for="id_experience_years" class="form-label">Years of Experience</label>
                             {{ form.experience_years }}
                             {% if form.experience_years.errors %}
                             <div class="alert alert-danger mt-2 mb-0">
@@ -62,9 +90,13 @@
                             {% endif %}
                         </div>
                         {% endif %}
+
+                        <hr>
+                        <p class="text-muted small">You can edit 4 fields: First Name, Last Name, City, and Years of Experience (if provider). Other fields are permanent for security reasons.</p>
+                        <hr>
                         
                         <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary flex-grow-1">Save Changes</button>
+                            <button type="submit" class="btn btn-primary flex-grow-1">✓ Save Changes</button>
                             <a href="{% url 'user_profile' %}" class="btn btn-outline-secondary flex-grow-1">Cancel</a>
                         </div>
                     </form>

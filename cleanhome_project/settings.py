@@ -82,13 +82,17 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to CleanHome Admin",
 
     "topmenu_links": [
-        {"name": "Home", "url": "logged_in_home"},
-        {"name": "Analytics", "url": "admin_analytics"},
+        {"name": "Home", "url": "admin:index", "new_window": False},
+        {"name": "Analytics", "url": "/dashboard/analytics/", "new_window": False},
     ],
 
     "show_sidebar": True,
     "navigation_expanded": True,
 
+    "footer_links": [],
+    "copyright": "CleanHome Services © 2026",
+    "show_ui_builder": False,
+    
     "icons": {
         "auth.User": "fas fa-user",
         "cleaning.Booking": "fas fa-calendar",

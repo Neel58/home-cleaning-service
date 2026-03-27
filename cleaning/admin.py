@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from .models import Service, UserProfile, Booking, Review, ServiceCategory, Notification, Payment
 
 @admin.register(ServiceCategory)
@@ -19,12 +20,50 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_filter = ('user_type', 'verification_status', 'is_verified_by_admin')
     search_fields = ('user__username', 'user__email', 'phone', 'city')
 
+class BookingAdminForm(forms.ModelForm):
+    """Custom form for Booking admin with proper photo field handling"""
+    class Meta:
+        model = Booking
+        fields = '__all__'
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'payment_status': forms.Select(attrs={'class': 'form-control'}),
+            'photo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+        }
+    
+    def clean_photo(self):
+        """Allow photo field to be empty"""
+        photo = self.cleaned_data.get('photo')
+        # If no photo is provided, that's fine - field allows null/blank
+        return photo
+
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
+    form = BookingAdminForm
     list_display = ('id', 'customer', 'provider', 'service', 'date_time', 'status', 'payment_status', 'rating_submitted', 'created_at')
     list_filter = ('status', 'payment_status', 'service', 'created_at', 'rating_submitted')
     search_fields = ('customer__username', 'provider__username', 'location')
     date_hierarchy = 'created_at'
+    readonly_fields = ('created_at', 'booking_expires_at')
+    fieldsets = (
+        ('Booking Information', {
+            'fields': ('customer', 'provider', 'service', 'status', 'date_time', 'location')
+        }),
+        ('Payment Information', {
+            'fields': ('payment_status',)
+        }),
+        ('Provider Notes', {
+            'fields': ('completion_notes', 'photo'),
+            'classes': ('collapse',)
+        }),
+        ('Metadata', {
+            'fields': ('rating_submitted', 'created_at', 'booking_expires_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):

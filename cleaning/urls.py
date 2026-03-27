@@ -34,13 +34,13 @@ urlpatterns = [
     path('provider/profile/', views.provider_profile, name='provider_profile'),
     
     # ===== ADMIN ROUTES =====
-    path('admin/provider-verification/', views.provider_verification_list, name='provider_verification_list'),
-    path('admin/provider/<int:profile_id>/verify/', views.provider_verify, name='provider_verify'),
-    path('admin/categories/', views.service_category_list, name='service_category_list'),
-    path('admin/categories/create/', views.service_category_create, name='service_category_create'),
-    path('admin/categories/<int:category_id>/edit/', views.service_category_edit, name='service_category_edit'),
-    path('admin/categories/<int:category_id>/delete/', views.service_category_delete, name='service_category_delete'),
-    path('admin/analytics/', views.admin_analytics, name='admin_analytics'),
+    path('dashboard/provider-verification/', views.provider_verification_list, name='provider_verification_list'),
+    path('dashboard/provider/<int:profile_id>/verify/', views.provider_verify, name='provider_verify'),
+    path('dashboard/categories/', views.service_category_list, name='service_category_list'),
+    path('dashboard/categories/create/', views.service_category_create, name='service_category_create'),
+    path('dashboard/categories/<int:category_id>/edit/', views.service_category_edit, name='service_category_edit'),
+    path('dashboard/categories/<int:category_id>/delete/', views.service_category_delete, name='service_category_delete'),
+    path('dashboard/analytics/', views.admin_analytics, name='admin_analytics'),
     
     # ===== NOTIFICATIONS =====
     path('notifications/read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),

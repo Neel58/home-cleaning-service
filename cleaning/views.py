@@ -4,8 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Q, Sum, Avg
+from django.db.models import Q, Sum, Avg, Count
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
+from django.utils.timezone import now
+from datetime import timedelta
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.http import HttpResponseForbidden
@@ -175,6 +178,10 @@ def index(request):
 @login_required
 def logged_in_home(request):
     """Logged-in user homepage with personalized content"""
+    # Redirect admin users to admin dashboard
+    if request.user.is_staff and request.user.is_superuser:
+        return redirect('admin:index')
+    
     try:
         profile = UserProfile.objects.get(user=request.user)
         user_type = profile.user_type
@@ -272,6 +279,15 @@ def customer_dashboard(request):
 @login_required
 def services(request):
     """Service listing with filtering and search"""
+    # Redirect providers to their dashboard instead
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+        if profile.user_type == 'provider':
+            messages.info(request, 'Service providers cannot browse customer services.')
+            return redirect('provider_dashboard')
+    except UserProfile.DoesNotExist:
+        pass
+    
     services_list = Service.objects.filter(category__is_active=True)
     form = ServiceFilterForm(request.GET)
     
@@ -318,6 +334,15 @@ def service_detail(request, service_id):
     service = get_object_or_404(Service, id=service_id)
     reviews = Review.objects.filter(booking__service=service).order_by('-created_at')[:5]
     
+    # Prevent service providers from booking services
+    is_provider = False
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+        if profile.user_type == 'provider':
+            is_provider = True
+    except UserProfile.DoesNotExist:
+        pass
+    
     # Get user's booking status for this service (if logged in)
     user_booking = None
     if request.user.is_authenticated:
@@ -328,9 +353,9 @@ def service_detail(request, service_id):
         ).exclude(status='cancelled').order_by('-created_at').first()
     
     if request.method == 'POST':
-        # Only allow booking if no active booking exists
-        if user_booking and user_booking.status not in ['completed', 'cancelled']:
-            messages.error(request, f'You already have an active booking for this service (Status: {user_booking.status.title()}). Please cancel it first if you want to book again.')
+        # Check if user is a provider - if yes, prevent booking
+        if is_provider:
+            messages.error(request, 'Service providers cannot book services.')
             form = BookingForm()
         else:
             form = BookingForm(request.POST)
@@ -357,6 +382,7 @@ def service_detail(request, service_id):
         'form': form,
         'reviews': reviews,
         'user_booking': user_booking,
+        'is_provider': is_provider,
     }
     return render(request, 'cleaning/service_detail.html', context)
 
@@ -412,7 +438,7 @@ def submit_review(request, booking_id):
         messages.error(request, 'You can only review completed bookings')
         return redirect('customer_dashboard')
     
-    if booking.review_set.exists():
+    if hasattr(booking, 'review') and booking.review:
         messages.info(request, 'You have already reviewed this booking')
         return redirect('customer_dashboard')
     
@@ -774,15 +800,9 @@ def service_category_delete(request, category_id):
     }
     return render(request, 'cleaning/admin/category_confirm_delete.html', context)
 
-from django.db.models import Count, Sum, Avg
-from django.utils.timezone import now
-from datetime import timedelta
-from django.db.models.functions import TruncMonth
 
 @require_admin
 def admin_analytics(request):
-    from .models import Booking, Service, UserProfile, Payment, Review
-
     # ===== BASIC STATS =====
     total_bookings = Booking.objects.count()
     bookings_this_month = Booking.objects.filter(

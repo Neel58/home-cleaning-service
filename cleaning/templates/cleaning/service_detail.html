@@ -36,75 +36,42 @@
             </div>
             
             <!-- Booking Actions Section -->
-            {% if user_booking %}
-                <!-- User has a booking for this service -->
-                {% if user_booking.status == 'pending' %}
-                <div class="alert alert-warning" role="alert">
-                    <h5 class="alert-heading">⏳ Your Booking is Pending</h5>
-                    <p>Waiting for a provider to accept your booking request...</p>
-                    <hr>
-                    <div class="btn-group" role="group">
-                        <a href="{% url 'customer_dashboard' %}" class="btn btn-primary btn-sm">View Booking Details</a>
-                        <a href="{% url 'booking_cancel' user_booking.id %}" class="btn btn-danger btn-sm">Cancel Booking</a>
-                    </div>
+            {% if is_provider %}
+                <!-- Provider cannot book services -->
+                <div class="alert alert-danger" role="alert">
+                    <h5 class="alert-heading">⛔ Cannot Book This Service</h5>
+                    <p class="mb-0">Service providers are not allowed to book services. Please log in as a customer if you wish to book this service.</p>
                 </div>
-                
-                {% elif user_booking.status in 'confirmed,in_progress,work_started' %}
-                <div class="alert alert-info" role="alert">
-                    <h5 class="alert-heading">✓ Your Booking is {{ user_booking.status|title }}</h5>
-                    <p><strong>Provider:</strong> {{ user_booking.provider.first_name|default:"Provider Assigned" }}</p>
-                    <p><strong>Scheduled:</strong> {{ user_booking.date_time|date:"M d, Y H:i" }}</p>
-                    <p class="text-muted mb-0"><small>Your booking is confirmed. A provider has accepted your request.</small></p>
-                    <hr>
-                    <div class="btn-toolbar" role="toolbar">
-                        <div class="btn-group me-2" role="group">
-                            <a href="{% url 'customer_dashboard' %}" class="btn btn-primary btn-sm">📊 Track Booking</a>
-                        </div>
-                        <div class="btn-group" role="group">
-                            <a href="{% url 'provider_profile' %}?id={{ user_booking.provider.id }}" class="btn btn-outline-primary btn-sm">👤 View Provider Profile</a>
-                        </div>
-                    </div>
-                </div>
-                
-                {% elif user_booking.status == 'completed' %}
-                <div class="alert alert-success" role="alert">
-                    <h5 class="alert-heading">✅ Booking Completed!</h5>
-                    <p class="mb-2">The service has been completed successfully.</p>
-                    {% if user_booking.review %}
-                    <p><strong>✓ Your Review:</strong></p>
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between mb-2">
-                                <strong>Your Rating:</strong>
-                                <span class="text-warning">⭐ {{ user_booking.review.rating }}/5</span>
-                            </div>
-                            <p class="mb-0">{{ user_booking.review.comment }}</p>
-                        </div>
-                    </div>
-                    {% else %}
-                    <p><strong>📝 Leave a Review</strong> to help other customers make informed decisions</p>
-                    {% endif %}
-                    <hr>
-                    <div class="btn-toolbar" role="toolbar" class="flex-wrap">
-                        {% if not user_booking.review %}
-                        <div class="btn-group me-2" role="group">
-                            <a href="{% url 'submit_review' user_booking.id %}" class="btn btn-primary btn-sm">⭐ Leave a Review</a>
-                        </div>
-                        {% endif %}
-                        <div class="btn-group me-2" role="group">
-                            <a href="{% url 'services' %}" class="btn btn-success btn-sm">🔄 Browse Services</a>
-                        </div>
-                        <div class="btn-group" role="group">
-                            <a href="{% url 'customer_dashboard' %}" class="btn btn-outline-secondary btn-sm">📱 My Bookings</a>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
             {% else %}
-                <!-- No existing booking, show booking form -->
-                <div class="card">
+                <!-- Display existing booking status (informational) if they have one -->
+                {% if user_booking %}
+                    {% if user_booking.status == 'pending' %}
+                    <div class="alert alert-warning" role="alert">
+                        <h5 class="alert-heading">⏳ Your Latest Booking is Pending</h5>
+                        <p>Your most recent booking for this service is waiting for a provider to accept...</p>
+                        <small><a href="{% url 'customer_dashboard' %}" class="alert-link">View Details</a> • <a href="{% url 'booking_cancel' user_booking.id %}" class="alert-link">Cancel This Booking</a></small>
+                    </div>
+                    
+                    {% elif user_booking.status in 'confirmed,in_progress,work_started' %}
+                    <div class="alert alert-info" role="alert">
+                        <h5 class="alert-heading">✓ Your Latest Booking is {{ user_booking.status|title }}</h5>
+                        <p class="mb-1"><strong>Provider:</strong> {{ user_booking.provider.first_name|default:"Provider Assigned" }}</p>
+                        <p class="mb-1"><strong>Scheduled:</strong> {{ user_booking.date_time|date:"M d, Y H:i" }}</p>
+                        <small><a href="{% url 'customer_dashboard' %}" class="alert-link">Track Booking</a> • <a href="{% url 'provider_profile' %}?id={{ user_booking.provider.id }}" class="alert-link">View Provider</a></small>
+                    </div>
+                    
+                    {% elif user_booking.status == 'completed' %}
+                    <div class="alert alert-success" role="alert">
+                        <h5 class="alert-heading">✅ Your Latest Booking Completed!</h5>
+                        <p class="mb-1">The service has been completed successfully. {% if not user_booking.review %}<a href="{% url 'submit_review' user_booking.id %}" class="alert-link">Leave a review?</a>{% else %}<strong>✓ You reviewed this booking.</strong>{% endif %}</p>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- Allow customers to create new bookings (regardless of existing bookings) -->
+                <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Book This Service</h5>
+                        <h5 class="mb-0">📅 Book This Service</h5>
                     </div>
                     <div class="card-body">
                         <form method="POST" class="row g-3">

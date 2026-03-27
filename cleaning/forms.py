@@ -144,15 +144,40 @@ class ProviderVerificationForm(forms.ModelForm):
 
 
 class UserProfileUpdateForm(forms.ModelForm):
-    """Form for users to update their profile"""
+    """Form for users to update their profile with name fields (restricted to 4 editable fields)"""
+    first_name = forms.CharField(
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'First name'
+        }),
+        label='First Name'
+    )
+    last_name = forms.CharField(
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Last name'
+        }),
+        label='Last Name'
+    )
+    phone = forms.CharField(
+        disabled=True,
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Phone (read-only)'
+        }),
+        label='Phone Number (Cannot be changed)',
+        help_text='Contact support to update phone number'
+    )
+    
     class Meta:
         model = UserProfile
-        fields = ['phone', 'city', 'experience_years']
+        fields = ['city', 'experience_years']
         widgets = {
-            'phone': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Phone number'
-            }),
             'city': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'City'
@@ -162,6 +187,39 @@ class UserProfileUpdateForm(forms.ModelForm):
                 'min': '0'
             })
         }
+        labels = {
+            'city': 'City',
+            'experience_years': 'Years of Experience'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-populate first_name and last_name from User instance
+        if self.instance and self.instance.user:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+        
+        # Pre-populate phone from UserProfile
+        if self.instance and self.instance.phone:
+            self.fields['phone'].initial = self.instance.phone
+        
+        # Hide experience_years for customers
+        if self.instance and self.instance.user_type == 'customer':
+            self.fields['experience_years'].widget = forms.HiddenInput()
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Save User model fields - only update if not empty
+        if instance.user:
+            if self.cleaned_data.get('first_name'):
+                instance.user.first_name = self.cleaned_data.get('first_name', '')
+            if self.cleaned_data.get('last_name'):
+                instance.user.last_name = self.cleaned_data.get('last_name', '')
+            if commit:
+                instance.user.save()
+        if commit:
+            instance.save()
+        return instance
 
 
 class ServiceFilterForm(forms.Form):

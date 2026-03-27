@@ -21,7 +21,7 @@
                         {% endfor %}
                     {% endif %}
                     
-                    <{% for booking in bookings %} method="POST" enctype="multipart/form-data" class="needs-validation">
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation">
                         {% csrf_token %}
                         
                         <div class="mb-3">
@@ -35,8 +35,8 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="notes" class="form-label"><strong>Add Notes</strong></label>
-                            <textarea class="form-control" id="notes" name="notes" rows="5" placeholder="e.g. Living room done, kitchen pending">{{ booking.notes }}</textarea>
+                            <label for="completion_notes" class="form-label"><strong>Add Notes</strong></label>
+                            <textarea class="form-control" id="completion_notes" name="completion_notes" rows="5" placeholder="e.g. Living room done, kitchen pending">{{ booking.completion_notes }}</textarea>
                         </div>
                         
                         <div class="mb-4">
