@@ -126,22 +126,23 @@ LOGIN_REDIRECT_URL = 'logged_in_home'
 
 # ======================== EMAIL CONFIGURATION ========================
 # For development: use file-based backend to save emails to files
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+# EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 # For console output (development without files):
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# For production: use Gmail SMTP (uncomment and configure below)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
-# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Real Email Configuration (Gmail SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = 'neldshah05@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'xxxx xxxx xxxx xxxx'  # Your 16-character App Password
+DEFAULT_FROM_EMAIL = 'CleanHome Service <neldshah05@gmail.com>' # Matches your Gmail
 
-DEFAULT_FROM_EMAIL = 'noreply@cleanhome.local'
+
 
 # ======================== SECURITY SETTINGS ========================
 # Session settings

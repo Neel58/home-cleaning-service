@@ -939,10 +939,94 @@ from django.contrib.auth.views import (
 class CustomPasswordResetView(PasswordResetView):
     """Custom password reset view"""
     template_name = 'cleaning/password_reset.html'
-    email_template_name = 'cleaning/emails/password_reset_email.txt'
-    html_email_template_name = 'cleaning/emails/password_reset_email.html'
-    subject_template_name = 'cleaning/emails/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
+
+    def post(self, request, *args, **kwargs):
+        import smtplib
+        import ssl
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        from django.conf import settings
+
+        email = request.POST.get('email', '').strip()
+
+        # Check database
+        users = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email))
+        if not email or not users.exists():
+            messages.error(request, "Error: This email is not registered in the database.")
+            return self.render_to_response(self.get_context_data(form=self.get_form()))
+
+        user = users.first()
+
+        # Build reset link
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        domain = request.get_host()
+        protocol = 'https' if request.is_secure() else 'http'
+        reset_url = f"{protocol}://{domain}/password-reset/{uid}/{token}/"
+
+        # Build email
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = 'CleanHome Password Reset'
+        msg['From'] = f'CleanHome Service <{settings.EMAIL_HOST_USER}>'
+        msg['To'] = email
+
+        text_body = f"""CleanHome Password Reset Request
+
+Hello {user.first_name or user.username},
+
+You requested a password reset. Click the link below to reset your password:
+
+{reset_url}
+
+This link is valid for 1 hour.
+
+If you didn't request this, please ignore this email.
+
+Best regards,
+CleanHome Support Team"""
+
+        html_body = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Password Reset</title></head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #6f42c1 0%, #5a2d8f 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+      <h1 style="margin: 0;">Password Reset Request</h1>
+    </div>
+    <div style="background: white; border: 1px solid #ddd; padding: 20px; border-radius: 0 0 8px 8px;">
+      <p>Hello <strong>{user.first_name or user.username}</strong>,</p>
+      <p>You requested a password reset for your CleanHome account. Click the button below:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="{reset_url}" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+          Reset Password
+        </a>
+      </div>
+      <p>Or copy this link: <br><span style="word-break: break-all; background: #f5f5f5; padding: 5px;">{reset_url}</span></p>
+      <p><strong>This link is valid for 1 hour.</strong></p>
+      <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+      <p>Best regards,<br><strong>CleanHome Support Team</strong></p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+        msg.attach(MIMEText(text_body, 'plain'))
+        msg.attach(MIMEText(html_body, 'html'))
+
+        # Send via raw smtplib (bypasses Django's broken backend on Python 3.14)
+        try:
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
+                server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                server.sendmail(settings.EMAIL_HOST_USER, [email], msg.as_string())
+            return redirect(self.success_url)
+        except Exception as e:
+            messages.error(request, f"Email Failed to Send: {str(e)}")
+            return self.render_to_response(self.get_context_data(form=self.get_form()))
 
 class CustomPasswordResetDoneView(PasswordResetDoneView):
     """Password reset done view"""
