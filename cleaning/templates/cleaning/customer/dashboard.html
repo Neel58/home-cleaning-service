@@ -69,20 +69,6 @@
                                     <img src="{{ booking.photo.url }}" 
                                          style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd; cursor:pointer;"
                                          data-bs-toggle="modal" data-bs-target="#photoModal{{ booking.id }}">
-                                    <!-- Photo Modal -->
-                                    <div class="modal fade" id="photoModal{{ booking.id }}" tabindex="-1">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Work Photo - {{ booking.service.name }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body text-center">
-                                                    <img src="{{ booking.photo.url }}" style="max-width:100%; border-radius:6px;">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 {% else %}
                                     <span class="text-muted text-center d-block">Pending</span>
                                 {% endif %}
@@ -140,23 +126,6 @@
                                     <img src="{{ booking.photo.url }}" 
                                          style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd; cursor:pointer;"
                                          data-bs-toggle="modal" data-bs-target="#photoModal{{ booking.id }}">
-                                    <!-- Photo Modal -->
-                                    <div class="modal fade" id="photoModal{{ booking.id }}" tabindex="-1">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Work Photo - {{ booking.service.name }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body text-center">
-                                                    <img src="{{ booking.photo.url }}" style="max-width:100%; border-radius:6px;">
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <small class="text-muted">{{ booking.completion_notes }}</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 {% else %}
                                     <span class="text-muted text-center d-block">In Progress</span>
                                 {% endif %}
@@ -177,7 +146,7 @@
         </div>
     </div>
     
-    <!-- Completed Bookings -->
+    <!-- ✅ UPDATED Completed Bookings -->
     <div class="row mt-5">
         <div class="col-md-12">
             <h3 class="mb-3">Completed Bookings</h3>
@@ -199,32 +168,21 @@
                         <tr>
                             <td>{{ booking.service.name }}</td>
                             <td>
-                                <a href="{% url 'provider_profile' %}?id={{ booking.provider.id }}">{{ booking.provider.first_name }}</a>
+                                <a href="{% url 'provider_profile' %}?id={{ booking.provider.id }}">
+                                    {{ booking.provider.first_name }}
+                                </a>
                             </td>
                             <td>{{ booking.created_at|date:"M d, Y" }}</td>
+
                             <td>
                                 {% if booking.photo %}
                                     <img src="{{ booking.photo.url }}" 
-                                         style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd; cursor:pointer;"
-                                         data-bs-toggle="modal" data-bs-target="#photoModal{{ booking.id }}">
-                                    <!-- Photo Modal -->
-                                    <div class="modal fade" id="photoModal{{ booking.id }}" tabindex="-1">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Work Photo - {{ booking.service.name }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body text-center">
-                                                    <img src="{{ booking.photo.url }}" style="max-width:100%; border-radius:6px;">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                         style="width:70px; height:70px; object-fit:cover; border-radius:6px; border:1px solid #ddd;">
                                 {% else %}
                                     <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
+
                             <td>
                                 {% if booking.rating_submitted %}
                                     <span class="badge bg-success">✓ Reviewed</span>
@@ -232,13 +190,22 @@
                                     <span class="badge bg-secondary">Not Rated</span>
                                 {% endif %}
                             </td>
+
+                            <!-- ✅ UPDATED ACTIONS -->
                             <td>
                                 {% if not booking.rating_submitted %}
-                                    <a href="{% url 'submit_review' booking.id %}" class="btn btn-sm btn-primary">Submit Review</a>
-                                {% else %}
-                                    <span class="text-muted">Reviewed</span>
+                                    <a href="{% url 'submit_review' booking.id %}" class="btn btn-sm btn-primary mb-1">
+                                        Review
+                                    </a>
                                 {% endif %}
+
+                                <!-- 🔥 NEW INVOICE BUTTON -->
+                                <a href="{% url 'download_invoice' booking.id %}" 
+                                   class="btn btn-sm btn-success">
+                                   Download Invoice
+                                </a>
                             </td>
+
                         </tr>
                         {% endfor %}
                     </tbody>

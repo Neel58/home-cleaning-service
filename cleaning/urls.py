@@ -20,6 +20,7 @@ urlpatterns = [
     path('profile/update/', views.profile_update, name='profile_update'),
     path('booking/<int:booking_id>/cancel/', views.booking_cancel, name='booking_cancel'),
     path('booking/<int:booking_id>/review/', views.submit_review, name='submit_review'),
+    path('booking/<int:booking_id>/invoice/', views.download_invoice, name='download_invoice'),
     
     # ===== INFO PAGES =====
     path('contact/', views.contact_view, name='contact'),

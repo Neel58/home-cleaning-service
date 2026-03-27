@@ -12,6 +12,10 @@ from datetime import timedelta
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.http import HttpResponseForbidden
+from django.http import HttpResponse
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
 
 from .models import Service, UserProfile, Booking, Review, ServiceCategory, Notification, Payment
 from .forms import (
@@ -1106,6 +1110,85 @@ def mark_all_notifications_read(request):
     
     return redirect(request.META.get('HTTP_REFERER', 'logged_in_home'))
 
+
+@login_required
+def download_invoice(request, booking_id):
+    # Get booking
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    # Security: Only customer can access
+    if booking.customer != request.user:
+        return HttpResponseForbidden("You are not allowed to download this invoice")
+
+    # Only completed bookings
+    if booking.status != 'completed':
+        messages.error(request, "Invoice available only after completion")
+        return redirect('customer_dashboard')
+
+    # Get payment if exists
+    payment = None
+    try:
+        payment = Payment.objects.get(booking=booking)
+    except Payment.DoesNotExist:
+        pass
+
+    # Create response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_{booking.id}.pdf"'
+
+    # Create PDF
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    styles = getSampleStyleSheet()
+
+    elements = []
+
+    # ===== HEADER =====
+    elements.append(Paragraph("CleanHome Service Invoice", styles['Title']))
+    elements.append(Spacer(1, 20))
+
+    # ===== INVOICE INFO =====
+    elements.append(Paragraph(f"Invoice Number: INV-{str(booking.id).zfill(5)}", styles['Normal']))
+    elements.append(Spacer(1, 10))
+
+    # ===== CUSTOMER DETAILS =====
+    profile = UserProfile.objects.get(user=request.user)
+
+    elements.append(Paragraph("Customer Details:", styles['Heading3']))
+    elements.append(Paragraph(f"Name: {request.user.first_name}", styles['Normal']))
+    elements.append(Paragraph(f"Phone: {profile.phone}", styles['Normal']))
+    elements.append(Paragraph(f"City: {profile.city}", styles['Normal']))
+    elements.append(Spacer(1, 10))
+
+    # ===== SERVICE DETAILS =====
+    elements.append(Paragraph("Service Details:", styles['Heading3']))
+    elements.append(Paragraph(f"Service: {booking.service.name}", styles['Normal']))
+    elements.append(Paragraph(f"Date: {booking.date_time}", styles['Normal']))
+    elements.append(Paragraph(f"Location: {booking.location}", styles['Normal']))
+
+    if booking.provider:
+        elements.append(Paragraph(f"Provider: {booking.provider.first_name}", styles['Normal']))
+
+    elements.append(Spacer(1, 10))
+
+    # ===== PAYMENT DETAILS =====
+    elements.append(Paragraph("Payment Details:", styles['Heading3']))
+
+    if payment:
+        elements.append(Paragraph(f"Amount Paid: ₹{payment.amount}", styles['Normal']))
+        elements.append(Paragraph(f"Status: {payment.status}", styles['Normal']))
+        elements.append(Paragraph(f"Transaction ID: {payment.transaction_id}", styles['Normal']))
+    else:
+        elements.append(Paragraph("Payment information not available", styles['Normal']))
+
+    elements.append(Spacer(1, 20))
+
+    # ===== FOOTER =====
+    elements.append(Paragraph("Thank you for choosing CleanHome!", styles['Heading3']))
+
+    # Build PDF
+    doc.build(elements)
+
+    return response
 
 
 # ======================== ERROR HANDLERS ========================
