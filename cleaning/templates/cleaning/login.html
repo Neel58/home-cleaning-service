@@ -28,9 +28,13 @@
                             <input type="email" class="form-control" id="email" name="email" placeholder="your.email@example.com" required>
                         </div>
                         
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input type="password" class="form-control" id="password" name="password" placeholder="Your password" required>
+                        </div>
+                        
+                        <div class="text-end mb-3">
+                            <a href="{% url 'password_reset' %}" class="text-muted small text-decoration-none">Forgot Password?</a>
                         </div>
                         
                         <p class="text-center text-muted small mb-3">(Select Role for Prototype)</p>

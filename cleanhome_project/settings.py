@@ -125,8 +125,12 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'logged_in_home'
 
 # ======================== EMAIL CONFIGURATION ========================
-# For development: use console backend to print emails to terminal
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# For development: use file-based backend to save emails to files
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+
+# For console output (development without files):
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # For production: use Gmail SMTP (uncomment and configure below)
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -136,10 +140,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
 # EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
 # DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-# For development: use file-based backend to save emails to files
-# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-# EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 DEFAULT_FROM_EMAIL = 'noreply@cleanhome.local'
 
