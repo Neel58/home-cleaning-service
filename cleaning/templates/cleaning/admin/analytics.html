@@ -156,7 +156,12 @@
         }
         
         .card-body canvas {
-            min-height: 250px !important;
+            min-height: 180px !important;
+            max-height: 260px !important;
+        }
+
+        .card {
+            min-height: 280px;
         }
         
         /* Table Styles */
@@ -234,6 +239,15 @@
             </div>
         </div>
     </div>
+
+    {% if is_dummy_data %}
+    <div class="container-analytics" style="margin-bottom: 15px;">
+        <div class="alert alert-info mb-0" role="alert" style="font-size: 0.9rem;">
+            <strong>Sample data is displayed</strong> because there isn’t enough real analytics data yet.
+            This view will reflect live bookings and revenue once available.
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Main Content -->
     <div class="container-analytics">
@@ -437,9 +451,36 @@
         Chart.defaults.color = '#6b7280';
         Chart.defaults.borderColor = '#e5e7eb';
 
-        const months = {{ monthly_bookings|safe }};
-        const revenue = {{ monthly_revenue|safe }};
-        const statusData = {{ bookings_by_status|safe }};
+        let months = JSON.parse('{{ monthly_bookings_json|escapejs }}');
+        let revenue = JSON.parse('{{ monthly_revenue_json|escapejs }}');
+        let statusData = JSON.parse('{{ bookings_by_status_json|escapejs }}');
+
+        // Defensive fallback in JS for any missing data
+        if (!Array.isArray(months) || months.length === 0) {
+            months = [
+                { month: 'Jan', count: 5 },
+                { month: 'Feb', count: 10 },
+                { month: 'Mar', count: 13 },
+                { month: 'Apr', count: 18 },
+                { month: 'May', count: 25 },
+                { month: 'Jun', count: 22 }
+            ];
+        }
+
+        if (!Array.isArray(revenue) || revenue.length === 0) {
+            revenue = [
+                { month: 'Jan', amount: 800 },
+                { month: 'Feb', amount: 1900 },
+                { month: 'Mar', amount: 2300 },
+                { month: 'Apr', amount: 2700 },
+                { month: 'May', amount: 3300 },
+                { month: 'Jun', amount: 3100 }
+            ];
+        }
+
+        if (!statusData || Object.values(statusData).reduce((sum, v) => sum + (parseInt(v, 10) || 0), 0) === 0) {
+            statusData = { pending: 4, confirmed: 9, in_progress: 3, completed: 14, cancelled: 2 };
+        }
 
         // Monthly Bookings Chart
         const bookingsCtx = document.getElementById('bookingsChart').getContext('2d');

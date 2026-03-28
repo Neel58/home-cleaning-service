@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
+import json
 from django.db.models import Q, Sum, Avg, Count
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
@@ -159,9 +160,15 @@ def login_view(request):
 def logout_view(request):
     """Handle user logout"""
     user_email = request.user.email if request.user.is_authenticated else None
+    user_is_admin = request.user.is_staff and request.user.is_superuser
     logout(request)
-    messages.success(request, f'You have been logged out successfully. See you again soon!')
-    return redirect('login')
+    messages.success(request, 'You have been logged out successfully. See you again soon!')
+    
+    # After admin logout, provide quick navigation to normal login page
+    return render(request, 'cleaning/logout.html', {
+        'user_email': user_email,
+        'user_is_admin': user_is_admin,
+    })
 
 
 # ======================== CUSTOMER VIEWS ========================
@@ -838,6 +845,16 @@ def admin_analytics(request):
         for status in statuses
     }
 
+    if all(count == 0 for count in bookings_by_status.values()):
+        is_dummy_data = True
+        bookings_by_status = {
+            'pending': 3,
+            'confirmed': 7,
+            'in_progress': 2,
+            'completed': 12,
+            'cancelled': 1,
+        }
+
     # ===== LAST 6 MONTHS DATA =====
     six_months_ago = now() - timedelta(days=180)
 
@@ -855,14 +872,37 @@ def admin_analytics(request):
     ).order_by('month')
 
     monthly_bookings = [
-        {'month': m['month'].strftime('%b'), 'count': m['count']}
+        {'month': m['month'].strftime('%b'), 'count': int(m['count'])}
         for m in monthly_bookings_qs
     ]
 
     monthly_revenue = [
-        {'month': m['month'].strftime('%b'), 'amount': m['amount'] or 0}
+        {'month': m['month'].strftime('%b'), 'amount': float(m['amount']) if m['amount'] else 0.0}
         for m in monthly_revenue_qs
     ]
+
+    # ===== DUMMY DATA FALLBACKS =====
+    is_dummy_data = False
+
+    if not monthly_bookings or not monthly_revenue:
+        is_dummy_data = True
+        monthly_bookings = [
+            {'month': 'Jan', 'count': 5},
+            {'month': 'Feb', 'count': 9},
+            {'month': 'Mar', 'count': 12},
+            {'month': 'Apr', 'count': 15},
+            {'month': 'May', 'count': 20},
+            {'month': 'Jun', 'count': 18},
+        ]
+
+        monthly_revenue = [
+            {'month': 'Jan', 'amount': 750.0},
+            {'month': 'Feb', 'amount': 1850.0},
+            {'month': 'Mar', 'amount': 2450.0},
+            {'month': 'Apr', 'amount': 2750.0},
+            {'month': 'May', 'amount': 3400.0},
+            {'month': 'Jun', 'amount': 3250.0},
+        ]
 
     # ===== TOP SERVICES =====
     top_services_qs = Booking.objects.values(
@@ -873,6 +913,14 @@ def admin_analytics(request):
         {'name': s['service__name'], 'count': s['count']}
         for s in top_services_qs
     ]
+
+    if not top_services:
+        is_dummy_data = True
+        top_services = [
+            {'name': 'Full House Cleaning', 'count': 18},
+            {'name': 'Maid Service', 'count': 14},
+            {'name': 'Deep Cleaning', 'count': 9},
+        ]
 
     # ===== AVERAGE RATING =====
     average_rating = Review.objects.aggregate(avg=Avg('rating'))['avg'] or 0
@@ -895,6 +943,10 @@ def admin_analytics(request):
         'top_services': top_services,
         'average_rating': round(average_rating, 2),
         'recent_bookings': recent_bookings,
+        'is_dummy_data': is_dummy_data,
+        'monthly_bookings_json': json.dumps(monthly_bookings),
+        'monthly_revenue_json': json.dumps(monthly_revenue),
+        'bookings_by_status_json': json.dumps(bookings_by_status),
     }
 
     return render(request, 'cleaning/admin/analytics.html', context)

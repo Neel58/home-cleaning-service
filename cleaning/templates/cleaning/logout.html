@@ -1,0 +1,27 @@
+{% extends 'cleaning/base.html' %}
+
+{% block title %}Logged Out - CleanHome{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+            <h3 class="card-title">You have been logged out</h3>
+            {% if user_email %}
+                <p class="text-muted">{{ user_email }} has been signed out.</p>
+            {% endif %}
+
+            <div class="d-flex justify-content-center gap-2 mt-4">
+                <a class="btn btn-primary" href="{% url 'login' %}">Go to User Login</a>
+                <a class="btn btn-outline-secondary" href="{% url 'admin:login' %}">Go to Admin Login</a>
+            </div>
+
+            {% if user_is_admin %}
+                <p class="mt-3"><small>You logged out from an admin session; choose where to sign in next.</small></p>
+            {% else %}
+                <p class="mt-3"><small>If you need admin access, click Admin Login.</small></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
