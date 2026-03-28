@@ -13,9 +13,11 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.http import HttpResponseForbidden
 from django.http import HttpResponse
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import inch
 
 from .models import Service, UserProfile, Booking, Review, ServiceCategory, Notification, Payment
 from .forms import (
@@ -196,6 +198,7 @@ def logged_in_home(request):
         # For customers, get their active and pending bookings
         active_bookings = get_active_bookings(request.user)
         pending_bookings = get_pending_bookings(request.user)
+        completed_bookings = get_completed_bookings(request.user)
         featured_services = Service.objects.filter(is_best_value=True)[:6]
         recent_reviews = Review.objects.filter(booking__customer=request.user).order_by('-created_at')[:3]
         
@@ -207,6 +210,7 @@ def logged_in_home(request):
             'profile': profile,
             'active_bookings': active_bookings,
             'pending_bookings': pending_bookings,
+            'completed_bookings': completed_bookings,
             'featured_services': featured_services,
             'recent_reviews': recent_reviews,
             'notifications': notifications,
@@ -1113,17 +1117,15 @@ def mark_all_notifications_read(request):
 
 @login_required
 def download_invoice(request, booking_id):
+    """Download invoice PDF - allows multiple downloads anytime"""
+    from datetime import datetime
+    
     # Get booking
     booking = get_object_or_404(Booking, id=booking_id)
 
     # Security: Only customer can access
     if booking.customer != request.user:
         return HttpResponseForbidden("You are not allowed to download this invoice")
-
-    # Only completed bookings
-    if booking.status != 'completed':
-        messages.error(request, "Invoice available only after completion")
-        return redirect('customer_dashboard')
 
     # Get payment if exists
     payment = None
@@ -1134,56 +1136,175 @@ def download_invoice(request, booking_id):
 
     # Create response
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="invoice_{booking.id}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="invoice_{booking.id}_{datetime.now().strftime("%Y%m%d")}.pdf"'
 
     # Create PDF
-    doc = SimpleDocTemplate(response, pagesize=A4)
+    doc = SimpleDocTemplate(response, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
     styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#1a5490'),
+        spaceAfter=6,
+        alignment=1  # center
+    )
+    
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading3'],
+        fontSize=12,
+        textColor=colors.white,
+        backColor=colors.HexColor('#1a5490'),
+        spaceAfter=10,
+        leftIndent=5,
+        rightIndent=5,
+        padding=5
+    )
+    
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=4
+    )
 
     elements = []
 
-    # ===== HEADER =====
-    elements.append(Paragraph("CleanHome Service Invoice", styles['Title']))
-    elements.append(Spacer(1, 20))
-
-    # ===== INVOICE INFO =====
-    elements.append(Paragraph(f"Invoice Number: INV-{str(booking.id).zfill(5)}", styles['Normal']))
+    # ===== COMPANY HEADER =====
+    header_data = [
+        [
+            Paragraph("<b>CleanHome Services</b>", styles['Heading2']),
+            Paragraph("<b>INVOICE</b>", title_style)
+        ]
+    ]
+    header_table = Table(header_data, colWidths=[3*inch, 3*inch])
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    elements.append(header_table)
     elements.append(Spacer(1, 10))
 
-    # ===== CUSTOMER DETAILS =====
+    # ===== INVOICE NUMBER & DATE =====
+    invoice_data = [
+        [Paragraph("<b>Invoice #:</b>", normal_style), Paragraph(f"INV-{str(booking.id).zfill(5)}", normal_style),
+         Paragraph("<b>Date:</b>", normal_style), Paragraph(f"{booking.created_at.strftime('%d %b %Y')}", normal_style)],
+        [Paragraph("<b>Booking #:</b>", normal_style), Paragraph(f"BK-{str(booking.id).zfill(5)}", normal_style),
+         Paragraph("<b>Status:</b>", normal_style), Paragraph(f"<b>{booking.status.upper()}</b>", normal_style)],
+    ]
+    invoice_table = Table(invoice_data, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 1.5*inch])
+    invoice_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9),
+        ('LINEBELOW', (0, 1), (-1, 1), 0.5, colors.grey),
+    ]))
+    elements.append(invoice_table)
+    elements.append(Spacer(1, 15))
+
+    # ===== CUSTOMER & SERVICE INFO =====
     profile = UserProfile.objects.get(user=request.user)
+    
+    # Customer section
+    elements.append(Paragraph("CUSTOMER INFORMATION", heading_style))
+    customer_data = [
+        [Paragraph(f"<b>Name:</b> {request.user.first_name} {request.user.last_name}", normal_style)],
+        [Paragraph(f"<b>Email:</b> {request.user.email}", normal_style)],
+        [Paragraph(f"<b>Phone:</b> {profile.phone}", normal_style)],
+        [Paragraph(f"<b>City:</b> {profile.city}", normal_style)],
+    ]
+    customer_table = Table(customer_data, colWidths=[6*inch])
+    customer_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+    ]))
+    elements.append(customer_table)
+    elements.append(Spacer(1, 12))
 
-    elements.append(Paragraph("Customer Details:", styles['Heading3']))
-    elements.append(Paragraph(f"Name: {request.user.first_name}", styles['Normal']))
-    elements.append(Paragraph(f"Phone: {profile.phone}", styles['Normal']))
-    elements.append(Paragraph(f"City: {profile.city}", styles['Normal']))
-    elements.append(Spacer(1, 10))
+    # Service section
+    elements.append(Paragraph("SERVICE DETAILS", heading_style))
+    service_data = [
+        [Paragraph(f"<b>Service:</b> {booking.service.name}", normal_style)],
+        [Paragraph(f"<b>Location:</b> {booking.location}", normal_style)],
+        [Paragraph(f"<b>Date & Time:</b> {booking.date_time.strftime('%d %b %Y, %I:%M %p')}", normal_style)],
+        [Paragraph(f"<b>Provider:</b> {booking.provider.first_name if booking.provider else 'Not Assigned'}", normal_style)],
+    ]
+    service_table = Table(service_data, colWidths=[6*inch])
+    service_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+    ]))
+    elements.append(service_table)
+    elements.append(Spacer(1, 12))
 
-    # ===== SERVICE DETAILS =====
-    elements.append(Paragraph("Service Details:", styles['Heading3']))
-    elements.append(Paragraph(f"Service: {booking.service.name}", styles['Normal']))
-    elements.append(Paragraph(f"Date: {booking.date_time}", styles['Normal']))
-    elements.append(Paragraph(f"Location: {booking.location}", styles['Normal']))
-
-    if booking.provider:
-        elements.append(Paragraph(f"Provider: {booking.provider.first_name}", styles['Normal']))
-
-    elements.append(Spacer(1, 10))
-
-    # ===== PAYMENT DETAILS =====
-    elements.append(Paragraph("Payment Details:", styles['Heading3']))
-
+    # Payment section
+    elements.append(Paragraph("PAYMENT INFORMATION", heading_style))
+    payment_data = [
+        [Paragraph("<b>Description</b>", ParagraphStyle('Bold', parent=normal_style)), Paragraph("<b>Amount</b>", ParagraphStyle('Bold', parent=normal_style))],
+    ]
+    
     if payment:
-        elements.append(Paragraph(f"Amount Paid: ₹{payment.amount}", styles['Normal']))
-        elements.append(Paragraph(f"Status: {payment.status}", styles['Normal']))
-        elements.append(Paragraph(f"Transaction ID: {payment.transaction_id}", styles['Normal']))
+        payment_data.append([
+            Paragraph(f"Service Fee - {booking.service.name}", normal_style),
+            Paragraph(f"₹{payment.amount}", normal_style)
+        ])
+        payment_data.append([
+            Paragraph(f"<b>Total Amount</b>", ParagraphStyle('Bold', parent=normal_style)),
+            Paragraph(f"<b>₹{payment.amount}</b>", ParagraphStyle('Bold', parent=normal_style))
+        ])
+        payment_data.append([
+            Paragraph(f"Payment Status: {payment.status.upper()}", normal_style),
+            Paragraph(f"Transaction: {payment.transaction_id}", normal_style)
+        ])
     else:
-        elements.append(Paragraph("Payment information not available", styles['Normal']))
+        payment_data.append([
+            Paragraph("Payment information not available", normal_style),
+            Paragraph("-", normal_style)
+        ])
 
+    payment_table = Table(payment_data, colWidths=[4*inch, 2*inch])
+    payment_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('FONT', (0, 0), (-1, -1), 'Helvetica', 9),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a5490')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#f0f0f0')]),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8e8e8')),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(payment_table)
     elements.append(Spacer(1, 20))
 
     # ===== FOOTER =====
-    elements.append(Paragraph("Thank you for choosing CleanHome!", styles['Heading3']))
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.grey,
+        alignment=1  # center
+    )
+    elements.append(Paragraph("─" * 50, footer_style))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b>Thank you for choosing CleanHome Services!</b>", footer_style))
+    elements.append(Paragraph("We appreciate your business.", footer_style))
+    elements.append(Spacer(1, 4))
+    elements.append(Paragraph(f"Invoice Generated: {datetime.now().strftime('%d %b %Y %H:%M:%S')}", footer_style))
 
     # Build PDF
     doc.build(elements)

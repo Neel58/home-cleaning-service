@@ -126,6 +126,47 @@
             </div>
             {% endif %}
 
+            <!-- Completed Bookings (with Invoice Download) -->
+            {% if completed_bookings %}
+            <div class="col-lg-12 mb-4">
+                <h5 class="mb-3">Your Completed Services</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Service</th>
+                                <th>Date Completed</th>
+                                <th>Provider</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in completed_bookings %}
+                            <tr>
+                                <td><strong>{{ booking.service.name }}</strong></td>
+                                <td>{{ booking.date_time|date:"M d, Y" }}</td>
+                                <td>{{ booking.provider.first_name|default:"N/A" }}</td>
+                                <td>
+                                    <span class="badge bg-success">Completed</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'download_invoice' booking.id %}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-file-pdf"></i> Invoice
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-lg-12 mb-4">
+                <p class="text-muted text-center">No completed bookings yet. Your completed services will appear here.</p>
+            </div>
+            {% endif %}
+
             <!-- Featured Services -->
             <div class="col-lg-12 mb-4">
                 <h5 class="mb-3">Featured Services for You</h5>
